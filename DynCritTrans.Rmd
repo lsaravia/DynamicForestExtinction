@@ -1,0 +1,445 @@
+---
+  title: "Dynamical Critical Transitions"
+author: "Leonardo A. Saravia"
+date: "9/3/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Estimation of the crititical transitions of an species (birds) inside a dynamical habitat (forest)
+
+In this model the birds reproduce inside the forest and to give birth search for an empty place in the neighborhood
+
+```{r dynCritSearchForEmptyPatch}
+require(readr)
+require(dplyr)
+require(ggplot2)
+
+source("R/functions.r")
+
+# wordl = 101
+#
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtles CriticalValueBirds1.5-3forest1.5-3_world101-table.csv")
+
+# mdl <- bind_rows(mdl,read_netlogo_simul("ContactProcessForestAsTurtles CriticalValueBirds2.5-4forest1.5-1.85_world101-table.csv"))
+
+#
+# Plot the proportion of birds as a function of forest and birds birth rates
+#
+mdl1 <- mdl %>% group_by(birth_rate_birds,birth_rate_forest) %>% 
+  summarize(sd_hp=sd(habitat_proportion),habitat_proportion=mean(habitat_proportion), birds_proportion=mean(birds_proportion) )
+
+require(plotly)
+plot_ly(data=mdl1, x=~birth_rate_birds, y=~birth_rate_forest, z=~birds_proportion, type="scatter3d", mode="markers", color=~birds_proportion, marker = list(size = 1))
+
+#
+# Estimate critical birds critical point 
+#
+birds_crit_size <- data_frame()
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,101) %>% mutate(type="BirthSelection"))
+
+
+#
+# Plot the critical point estimated as a binomial model with the proportion of birds relative to the habitat 
+# 
+# Size of the model 251*251
+#
+# hab_size <- 101*101 
+# mdl1 <- mdl %>% filter(birth_rate_birds %in% c(1.8,2.0,2.6,2.9)) %>% mutate(nhabitat= habitat_proportion*hab_size, nbirds=birds_proportion*hab_size, bird_hab_prop=nbirds/nhabitat) %>% mutate(bird_hab_prop=ifelse(bird_hab_prop>1,1,bird_hab_prop))
+# 
+# ggplot(mdl1 , aes(birth_rate_forest,bird_hab_prop,  colour=birth_rate_birds)) + geom_point(alpha=0.2) + theme_bw() +  scale_color_viridis_c(guide=FALSE) +  binomial_smooth() + facet_wrap(~birth_rate_birds)
+# 
+
+# ggsave("Figures/birds_proportion_critical.png",width=6)
+
+
+
+
+#
+#
+# wordl = 201
+#
+
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtles CriticalValueBirds1.5-3forest1.5-3_world201-table.csv")
+
+#
+# Plot the proportion of birds as a function of forest and birds birth rates
+#
+mdl1 <- mdl %>% group_by(birth_rate_birds,birth_rate_forest) %>% 
+  summarize(sd_hp=sd(habitat_proportion),habitat_proportion=mean(habitat_proportion), birds_proportion=mean(birds_proportion) )
+
+require(plotly)
+plot_ly(data=mdl1, x=~birth_rate_birds, y=~birth_rate_forest, z=~birds_proportion, type="scatter3d", mode="markers", color=~birds_proportion, marker = list(size = 1))
+
+#
+# Estimate critical birds critical point 
+#
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,201) %>% mutate(type="BirthSelection"))
+
+
+#
+# wordl = 51
+#
+
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtles CriticalValueBirds1.5-3forest1.5-3_world51-table.csv")
+
+#
+# Plot the proportion of birds as a function of forest and birds birth rates
+#
+mdl1 <- mdl %>% group_by(birth_rate_birds,birth_rate_forest) %>% 
+  summarize(sd_hp=sd(habitat_proportion),habitat_proportion=mean(habitat_proportion), birds_proportion=mean(birds_proportion) )
+
+require(plotly)
+plot_ly(data=mdl1, x=~birth_rate_birds, y=~birth_rate_forest, z=~birds_proportion, type="scatter3d", mode="markers", color=~birds_proportion, marker = list(size = 1))
+
+#
+# Estimate critical birds critical point 
+#
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,51) %>% mutate(type="BirthSelection"))
+
+
+#
+# finite size scaling to determine pcrit for infinite lattices 
+#
+
+birds_crit_size <- bind_rows(birds_crit_size,
+                             birds_crit_size %>% group_by(birth_rate_forest) %>% mutate(iSize=1/(size*size)) %>% 
+                               do({
+                                 model=lm(birth_rate_birds_c ~ iSize, data=.)
+                                 data.frame(birth_rate_birds_c=predict(model,newdata=data.frame(iSize=0)),
+                                            pcSE=predict(model,newdata=data.frame(iSize=0),se.fit=T)$se.fit)
+                               }) %>% mutate(size=0))
+
+
+ggplot(birds_crit_size %>% filter(size==0), aes(birth_rate_forest,birth_rate_birds_c,  colour=factor(size))) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5) + #+ xlim(1.5,3) 
+  geom_smooth( se = FALSE,size=0.3) 
+
+ggplot(birds_crit_size, aes(birth_rate_forest,birth_rate_birds_c,  colour=factor(size))) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5) #+ xlim(1.5,3) 
+#  geom_smooth( se = FALSE,size=0.3) #+ facet_wrap(~size)
+
+
+#
+# Estimate for a wider range 
+#
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtlesCriticalValueBirds1-2forest3-4.5_w101_birthSel-table.csv")
+
+
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,101) %>% mutate(type="BirthSelection") )
+
+saveRDS(birds_crit_size, "birds_crit_size.rds")
+
+birds_crit_size <- readRDS("birds_crit_size.rds")
+
+
+rm(mdl,mdl1)
+save.image()
+
+```
+
+The results showed that there is little difference between the critical points for different sizes, and the critical point for infinite lattices.
+
+# Model with noSelection
+
+In this model the birds reproduce inside the forest and to give birth they select a place at random in the neighborhood if the place is a forest site with no birds it success else it dies.
+
+```{r dynCritNoSearchForEmptyPatch}
+require(readr)
+require(dplyr)
+require(ggplot2)
+
+source("R/functions.r")
+
+# wordl = 101
+#
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtlesSelection CriticalValueBirds2.5-4.5forest2.5-4.5_w51_noSel-table.csv")
+
+#
+# Plot the proportion of birds as a function of forest and birds birth rates
+#
+mdl1 <- mdl %>% group_by(birth_rate_birds,birth_rate_forest) %>% 
+  summarize(sd_hp=sd(habitat_proportion),habitat_proportion=mean(habitat_proportion), birds_proportion=mean(birds_proportion) )
+
+require(plotly)
+plot_ly(data=mdl1, x=~birth_rate_birds, y=~birth_rate_forest, z=~birds_proportion, type="scatter3d", mode="markers", color=~birds_proportion, marker = list(size = 1))
+
+#
+# Estimate critical birds critical point 
+#
+
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,51) %>% mutate(type="NoSelection") )
+
+#
+# World size 101
+#
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtlesSelection CriticalValueBirds2.5-4.5forest2.5-4.5_w101_noSel-table.csv")
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,101) %>% mutate(type="NoSelection") )
+
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtlesSelection CriticalValueBirds2.5-4.5forest2.5-4.5_w201_noSel-table.csv")
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,201) %>% mutate(type="NoSelection") )
+
+ggplot(birds_crit_size %>% filter(type=="NoSelection"), aes(birth_rate_forest,birth_rate_birds_c,  colour=factor(size))) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5)
+
+ggplot(birds_crit_size %>% filter(size==51), aes(birth_rate_forest,birth_rate_birds_c,  colour=factor(type))) +  scale_color_viridis_d(guide=FALSE) + theme_bw() + geom_point(size=0.5) + #+ xlim(1.5,3) 
+  geom_smooth( se = FALSE,size=0.3) #+ facet_wrap(~size)
+
+rm(mdl,mdl1)
+save.image()
+```
+
+# Model with adult selection
+
+In this version of the model if the forest patch die the adults move to an empty forest patch and also the parents select an empty forest patch
+
+```{r dynCritNoSearchForEmptyPatch}
+require(readr)
+require(dplyr)
+require(ggplot2)
+
+source("R/functions.r")
+
+# world = 101
+#
+mdl <- read_netlogo_simul("Simulations/ContactProcessForestAsTurtlesSelection CriticalValueBirds1.2-3forest1.2-3_w101_adSel-table.csv")
+
+
+#
+# Plot the proportion of birds as a function of forest and birds birth rates
+#
+mdl1 <- mdl %>% group_by(birth_rate_birds,birth_rate_forest) %>% 
+  summarize(sd_hp=sd(habitat_proportion),habitat_proportion=mean(habitat_proportion), birds_proportion=mean(birds_proportion) )
+
+require(plotly)
+plot_ly(data=mdl1, x=~birth_rate_birds, y=~birth_rate_forest, z=~birds_proportion, type="scatter3d", mode="markers", color=~birds_proportion, marker = list(size = 1))
+
+#
+# Estimate critical birds critical point 
+#
+
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,101) %>% mutate(type="AdultSelection") )
+
+```
+
+# Run the model from R using nlrx 
+
+- Previously I ran the model using behaviorSpace
+
+```{r dynCritAdultSelectionnlrx}
+
+
+equire(nlrx)
+require(readr)
+require(dplyr)
+require(ggplot2)
+
+source("R/functions.r")
+
+# Unix default NetLogo installation path (adjust to your needs!):
+netlogopath <- file.path("/home/leonardo/NetLogo")
+simfolder <- "/home/leonardo/Dropbox/Projects/DynamicForestExtinction"
+modelpath <- file.path(simfolder, "ContactProcessForestAsTurtlesSelection.nlogo")
+outpath <- file.path(simfolder,"Simulations")
+
+# If not defined set the JAVA version of your local 
+if(Sys.getenv("JAVA_HOME")==""){
+  Sys.setenv(JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64")
+  ## "/usr/lib/jvm/java-8-oracle"
+}
+
+nl <- nl(nlversion = "6.1",
+         nlpath = netlogopath,
+         modelpath = modelpath,
+         jvmmem = 2048)
+
+nl@experiment <- experiment(expname="CP_birds1-1.6_forest3-4.5_adSel",
+                            outpath=outpath,
+                            repetition=1,
+                            tickmetrics="false",
+                            idsetup="setup-center",
+                            idgo="go",
+                            runtime=1000,
+                            metrics=c("habitat-proportion", "birds-proportion"),
+                            variables = list("birth-rate-forest" = list(min=3, max=4.5, step=0.01 , qfun="qunif"),
+                                             "birth-rate-birds" = list(min=1, max=1.6, step=0.01, qfun="qunif")), 
+                            constants = list("world-width" = 101,
+                                             "world-height" = 101,
+                                             "death-rate-birds" = 1,
+                                             "death-rate-forest" = 1,
+                                             "birds-behavior" = "\"AdultSelection\""))
+#
+# Set a full factorial design 
+#
+nl@simdesign <- simdesign_ff(nl=nl,nseeds=5)
+
+#nl@simdesign <- simdesign_lhs(nl=nl,nseeds=1,samples=10000,precision=3)
+
+# run in Paralell 
+#
+require(future)
+plan(multisession,workers=24)
+require(tictoc)
+tic()
+results <- run_nl_all(nl,split = 20)
+toc()
+plan(sequential)
+
+#
+# Using BehaviorSpace 80.5 sims/min
+
+# Write the output
+#
+setsim(nl, "simoutput") <- results 
+write_simoutput(nl)
+
+# Read the output to calculate critical points
+#
+mdl <- read_netlogo_simul("Simulations/CP_birds1-1.6_forest3-4.5_adSel_ff.csv",skip = 0)
+birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,101) %>% mutate(type="AdultSelection") )
+
+rm(mdl,mdl1,nl)
+save.image()
+
+ggplot(birds_crit_size %>% filter(size==101), aes(birth_rate_forest,birth_rate_birds_c,  colour=factor(type))) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5)  #+ xlim(1.5,3) 
+  # geom_smooth(method="loess", se = FALSE,size=0.3) #+ facet_wrap(~size)
+ggsave("Figures/CriticalExtinctionNeigh1.png",width=6,height=5,units="in",dpi=600)
+
+```
+
+# Change dispersal
+
+
+# Unit Testing 
+
+- Check if the model with variable dispersal behaves equal than the fixed dispersal at dispersal-distance = 1
+
+    - NoSelection checked
+    - BirthSelection
+    
+  
+```{r unitTestingModelnlrx}
+
+#
+# Model with fixed neighborhood = 4 closest cells 
+#
+modelpath <- file.path(simfolder, "ContactProcessForestAsTurtlesSelection.nlogo")
+
+nl <- nl(nlversion = "6.1",
+         nlpath = netlogopath,
+         modelpath = modelpath,
+         jvmmem = 2048)
+
+nl@experiment <- experiment(expname="CP_UnitTest_birds1.9-5.0_forest2.5",
+                            outpath=outpath,
+                            repetition=1,
+                            tickmetrics="true",
+                            evalticks = 901:1000,
+                            idsetup="setup-full",
+                            idgo="go",
+                            runtime=1000,
+                            metrics=c("habitat-proportion", "birds-proportion"),
+                            variables = list("birth-rate-forest" = list(values=c(2.5,2.5,2.5)),
+                                             "birth-rate-birds" = list(values=c(1.9,2.1,5.0)),
+                                             "birds-behavior" = list(values=c("\"AdultSelection\"", "\"BirthSelection\"", "\"NoSelection\""))
+                                             ),
+                            constants = list("world-width" = 101,
+                                             "world-height" = 101,
+                                             "death-rate-birds" = 1,
+                                             "death-rate-forest" = 1)
+                            )
+
+nl@simdesign <- simdesign_distinct(nl=nl,nseeds = 1)
+
+results <- run_nl_all(nl)
+# Write the output
+#
+if( !file.exists("Simulations/CP_UnitTest_birds1.9-5.0_forest2.5_distinct.csv")){
+  setsim(nl, "simoutput") <- results 
+  write_simoutput(nl)
+}
+
+mdl <- read_netlogo_simul("Simulations/CP_UnitTest_birds1.9-5.0_forest2.5_distinct.csv",skip = 0)
+mdl %>% group_by(birds_behavior) %>% summarize(habitat_proportion=median(habitat_proportion),birds_proportion=median(birds_proportion))
+
+#  birds_behavior habitat_proportion birds_proportion
+#   <chr>                       <dbl>            <dbl>
+# 1 AdultSelection              0.549            0.304
+# 2 BirthSelection              0.547            0.321
+# 3 NoSelection                 0.549            0.234
+
+test_mdl <- mdl %>% mutate(dispersal="fixed")
+
+#
+# Model with variable neighborhood = 4 closest cells 
+#
+modelpath <- file.path(simfolder, "ContactProcessForestAsTurtlesSelectionRadius.nlogo")
+
+nl <- nl(nlversion = "6.1",
+         nlpath = netlogopath,
+         modelpath = modelpath,
+         jvmmem = 2048)
+
+nl@experiment <- experiment(expname="CP_RadiusTest_birds1.9-5.0_forest2.5",
+                            outpath=outpath,
+                            repetition=1,
+                            tickmetrics="true",
+                            evalticks = 901:1000,
+                            idsetup="setup-full",
+                            idgo="go",
+                            runtime=1000,
+                            metrics=c("habitat-proportion", "birds-proportion"),
+                            variables = list("birth-rate-forest" = list(values=c(2.5,2.5,2.5)),
+                                             "birth-rate-birds" = list(values=c(1.9,2.1,5.0)),
+                                             "birds-behavior" = list(values=c("\"AdultSelection\"", "\"BirthSelection\"", "\"NoSelection\""))
+                                             ),
+                            constants = list("world-width" = 101,
+                                             "world-height" = 101,
+                                             "death-rate-birds" = 1,
+                                             "death-rate-forest" = 1)
+                            )
+
+nl@simdesign <- simdesign_distinct(nl=nl,nseeds = 1)
+
+results <- run_nl_all(nl)
+setsim(nl, "simoutput") <- results 
+write_simoutput(nl)
+mdl <- read_netlogo_simul("Simulations/CP_RadiusTest_birds1.9-5.0_forest2.5_distinct.csv",skip = 0)
+mdl %>% group_by(birds_behavior) %>% summarize(habitat_proportion=median(habitat_proportion),birds_proportion=median(birds_proportion))
+
+test_mdl <- bind_rows(test_mdl, mdl %>% mutate(dispersal="variable"))
+
+ggplot(test_mdl, aes(step,habitat_proportion,colour=dispersal)) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5)  + facet_wrap(~birds_behavior)
+
+ggplot(test_mdl, aes(step,birds_proportion,colour=dispersal)) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5)  + facet_wrap(~birds_behavior)
+
+test_mdl %>% group_by(birds_behavior,dispersal) %>% summarize(habitat_proportion=median(habitat_proportion),birds_proportion=median(birds_proportion))
+
+
+#   birds_behavior dispersal habitat_proportion birds_proportion
+#   <chr>          <chr>                  <dbl>            <dbl>
+# 1 AdultSelection fixed                  0.549            0.304
+# 2 AdultSelection variable               0.550            0.312
+# 3 BirthSelection fixed                  0.547            0.321
+# 4 BirthSelection variable               0.546            0.304
+# 5 NoSelection    fixed                  0.549            0.234
+# 6 NoSelection    variable               0.549            0.237
+
+require(kSamples)
+
+df <- test_mdl %>% group_by(birds_behavior) %>% do({
+  ad <- ad.test(habitat_proportion ~ dispersal, data=.)
+  data.frame(t(ad$ad[1,]))
+  })
+df <- test_mdl %>% group_by(birds_behavior) %>% do({
+  ad <- ad.test(birds_proportion ~ dispersal, data=.)
+  data.frame(t(ad$ad[1,]))
+
+  })
+
+
+rm(ad,df,mdl,nl,results)
+save.image()
+```
