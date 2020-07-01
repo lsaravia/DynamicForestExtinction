@@ -231,7 +231,7 @@ birds_crit_size <- bind_rows(birds_crit_size, estim_crit_point_size(mdl,101) %>%
 ```{r dynCritAdultSelectionnlrx}
 
 
-equire(nlrx)
+require(nlrx)
 require(readr)
 require(dplyr)
 require(ggplot2)
@@ -306,6 +306,10 @@ save.image()
 ggplot(birds_crit_size %>% filter(size==101), aes(birth_rate_forest,birth_rate_birds_c,  colour=factor(type))) +  scale_color_viridis_d() + theme_bw() + geom_point(size=0.5)  #+ xlim(1.5,3) 
   # geom_smooth(method="loess", se = FALSE,size=0.3) #+ facet_wrap(~size)
 ggsave("Figures/CriticalExtinctionNeigh1.png",width=6,height=5,units="in",dpi=600)
+
+# Save data.frame with critical extinction data
+#
+saveRDS(birds_crit_size, "birds_crit_size.rds")
 
 ```
 

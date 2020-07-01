@@ -1,7 +1,27 @@
 
-1 - Comparison of dynamical and statical landscapes
+##
 
-2- Comparison of different behavior
+Punteado Santiago
+
+Hola Leo,
+
+Te mando un punteado sobre la idea de evaluar empíricamente si el Amazonas podría está en camino a una transición crítica con la deforestación como forzante, y donde el feedback cobertura arbórea / evapotranspiración / precipitación es fundamental para la estabilidad del sistema.
+
+* Podríamos estudiar zonas/unidades que sean porciones relativamente pequeñas del Amazonas seleccionadas al azar, de forma de cubrir un gradiente de deforestación.
+En cada unidad evaluaríamos 3 cosas:
+
+	* La deforestación como forzante. Me imagino cuantificar esto con métrica muy simple como área deforestada total (en los últimos xx años), o quizás alguna métrica un poco más compleja pero que sea sencilla de cuantificar y comprender. 
+
+	* El patrón espacio-temporal de la foresta, cuantificado de una forma que permita excluir el efecto directo de las áreas taladas, de manera de tener una señal “limpia” de la dinámica intrínseca del sistema. El trabajo de Fort que mencionabas usa variabilidad como métrica, tendríamos que chequear que esta u otra métrica no responda al efecto directo de la deforestación, quizás simplemente excluyendo del cómputo celdas deforestadas y asegurándonos de usar una métrica que esté normalizada para que su valor no se vea afectado.    
+
+	* El patrón (espacio?) temporal de las precipitaciones.  
+
+* Si la dinámica de la foresta está efectivamente dominada por una retroalimentación entre las precipitaciones y la cobertura arbórea que se ve desestabilizada por la deforestación, en unidades con mayor deforestación deberíamos observar un aumento en la variabilidad (u otras métricas) en el patrón espacio-temporal de la cobertura arbórea y de las precipitaciones. Sería interesante ver si para deforestación suficientemente alta hay un efecto no lineal sobre la dinámica del sistema, de modo de evaluar si hay un umbral de deforestación a partir del cuál la pérdida de área de bosque comienza a darse por una dinámica intrínseca. Además, al estudiar las precipitaciones, si hay una asociación entre el patrón de la foresta y el patrón de lluvias esto daría soporte a la idea de que el efecto se da por pérdida del feedback cobertura / lluvias.
+
+* Entiendo que este este enfoque metodológico estaría justificado si la dinámica de la foresta tiene una escala espacial tal que la dinámica de las unidades analizadas depende mayoritariamente de las condiciones “locales”.
+
+Bueno me parece re interesante rumbear para algo así, probablemente habría que hacer algún tipo de validación con un modelo (o algunos modelos) sencillos donde mostremos lo que se observaría si se da efectivamente una dinámica como la que hipotetizamos, capaz con el laburo de Fort o algunos de los publicados alcanza. En todo caso no me parece que haga falta en primera instancia hacer un ajuste de modelos a los datos, si diese un patrón interesante creo que ya estaría justificado el laburo al probrar que un patrón compatible con un camino a la transición alcanzaría (jajaaa como si fuese poco).
+------------------------
 
 
 --------------------

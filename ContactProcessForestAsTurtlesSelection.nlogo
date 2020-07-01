@@ -7,8 +7,6 @@ globals [ total-patches   ; Measure the total number of patches
           gr-birds
         ]
 
-extensions [profiler]
-
 to setup-ini
   clear-all
   set total-patches count patches
