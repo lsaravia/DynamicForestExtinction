@@ -9,7 +9,7 @@ globals [ total-patches
           powexp               ; power law exponent
 ]
 
-extensions [profiler table]
+extensions [profiler table vid]
 
 to setup-ini
   clear-all
@@ -54,11 +54,26 @@ to setup
       ]
     ]
   ]
+  if video [
+     vid:reset-recorder
+     vid:start-recorder
+          ; vid:record-interface
+     vid:record-view
+  ]
+
   reset-ticks
 
 end
 
 to go
+
+  if ticks = 500 [
+    if video [
+        vid:save-recording "MultipleSpeciesNeutralMigrat.mp4"
+    ]
+    stop
+  ]
+
   ;;
   ;; Calculate probabilities
   set mr-birds migration-rate-birds / ( death-rate-birds + birth-rate-birds)
@@ -82,6 +97,11 @@ to go
   )
 
   tick
+  if video [
+        ;vid:record-interface
+        vid:record-view
+  ]
+
 end
 
 ;;
@@ -198,10 +218,12 @@ to-report calc-shannon-diversity
   let species-count []
   let total-species count birds
   ;;print total-species
-  foreach species-l [
-    i -> let species-p count birds with [species = i] / total-species
-    if species-p > 0 [
-      set species-count lput (- species-p * ln species-p  ) species-count
+  if total-species > 0 [
+    foreach species-l [
+      i -> let species-p count birds with [species = i] / total-species
+      if species-p > 0 [
+        set species-count lput (- species-p * ln species-p  ) species-count
+      ]
     ]
   ]
   report sum species-count
@@ -398,7 +420,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-1.3
+1.03
 0.01
 1
 NIL
@@ -438,7 +460,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -11221820 true "" "plot calc-shannon-diversity"
+"H" 1.0 0 -11221820 true "" "plot calc-shannon-diversity"
 
 BUTTON
 20
@@ -466,7 +488,7 @@ prob-frag
 prob-frag
 0
 1
-0.2
+0.1
 .1
 1
 NIL
@@ -481,6 +503,17 @@ birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection"
 1
+
+SWITCH
+110
+305
+213
+338
+Video
+Video
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -661,6 +694,15 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
+flower budding
+false
+0
+Polygon -7500403 true true 135 120 165 165 180 210 180 240 150 300 165 300 195 240 195 195 165 135
+Polygon -7500403 true true 189 233 219 188 249 173 279 188 234 218
+Polygon -7500403 true true 180 255 150 210 105 210 75 240 135 240
+Polygon -7500403 true true 180 150 180 120 165 97 135 84 128 121 147 148 165 165
+Polygon -7500403 true true 170 155 131 163 175 167 196 136
+
 house
 false
 0
@@ -824,7 +866,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
