@@ -146,7 +146,8 @@ to migration-birds-neutral
 
 end
 ;;
-;; Birds select an empty site (if exist) to reproduce and if the site is occupied by species with a lower number
+;; Birds search for an empty and not degraded site (if exist) to reproduce inside the dispersal distance
+;; given by a power law distribution
 ;;
 to grow-birds-neutral
   let rnd random-float 1
@@ -154,27 +155,34 @@ to grow-birds-neutral
   [ die ]
   [
     let effective-dispersal  random-power-law-distance 1 powexp
-    ;;print word "Effective dispersal : " effective-dispersal
-    let target one-of patches in-radius effective-dispersal with [not degraded and not any? birds-here]
-    if target != nobody [
+    let centerpatch patch-here
+    ;;let target max-one-of (patches in-radius effective-dispersal with [not degraded and not any? birds-here]) [distance centerpatch]
+    let targets patches in-radius effective-dispersal with [not degraded and not any? birds-here]
+
+    if any? targets [
+      let target max-one-of targets [distance centerpatch]
+      ;;show (word "in-radius eff-disp " effective-dispersal " - Real distance " distance target)
+
       hatch-birds 1 [ move-to target ]
     ]
-    ;;      let target one-of neighbors4 with [not any? birds-here]
-    ;;      if target != nobody [
-    ;;        hatch-birds 1 [ move-to target ]
-
   ]
 end
 
-
+;;
+;; Birds select a patch with a power law distance distribution if empty and not degraded site they reproduce
+;; they don't search for one available
+;;
 to grow-birds-neutral-no-selection
   let rnd random-float 1
   ifelse rnd > gr-birds
   [ die ]
   [
     let effective-dispersal  random-power-law-distance 1 powexp
-    ;;print word "Effective dispersal : " effective-dispersal
-    let target one-of patches in-radius effective-dispersal
+    let centerpatch patch-here
+    let target max-one-of patches in-radius effective-dispersal [distance centerpatch]
+    ;;let target one-of patches in-radius effective-dispersal
+    ;;show (word "in-radius eff-disp " effective-dispersal " - Real distance " distance target)
+
     if (not [degraded] of target and not any? birds-on target) [
       hatch-birds 1 [ move-to target ]
     ]
@@ -191,6 +199,7 @@ to grow-birds-hierarchical
   [
     let effective-dispersal  random-power-law-distance 1 powexp
     ;;print word "Effective dispersal : " effective-dispersal
+
     let target one-of patches in-radius effective-dispersal with [not any? birds-here]
     ifelse target != nobody
     [
@@ -406,7 +415,7 @@ migration-rate-birds
 0
 5
 0.001
-0.001
+0.0001
 1
 NIL
 HORIZONTAL
@@ -420,7 +429,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-1.03
+3.37
 0.01
 1
 NIL
@@ -488,7 +497,7 @@ prob-frag
 prob-frag
 0
 1
-0.1
+0.0
 .1
 1
 NIL
@@ -502,7 +511,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection"
-1
+0
 
 SWITCH
 110
@@ -511,7 +520,7 @@ SWITCH
 338
 Video
 Video
-0
+1
 1
 -1000
 

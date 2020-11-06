@@ -81,22 +81,23 @@ to go
 end
 
 to grow-forest
-    ifelse random-float 1 > gr-forest
-    [
-      ;show "1 forest died"
-      die
-    ]
-    [
-      let effective-dispersal  random-power-law-distance 1 powexp
-      let centerpatch patch-here
-      ;;print word "Effective dispersal : " effective-dispersal
-      ask one-of patches in-radius effective-dispersal with [self != centerpatch][
-        if not any? forest-here [
-           sprout-forest 1 [set color green set size 1]
+  ifelse random-float 1 > gr-forest
+  [
+    ;show "1 forest died"
+    die
+  ]
+  [
+    let effective-dispersal  random-power-law-distance 1 powexp
+    let centerpatch patch-here
 
-        ]
+    ask max-one-of patches in-radius effective-dispersal [distance centerpatch][
+      ;;show (word "in-radius eff-disp " effective-dispersal " - Real distance " distance centerpatch)
+      if not any? forest-here [
+         sprout-forest 1 [set color green set size 1]
+
       ]
     ]
+  ]
 end
 
 ;;
@@ -268,7 +269,7 @@ initial-population
 initial-population
 1
 10001
-2151.0
+1.0
 10
 1
 NIL
@@ -482,7 +483,7 @@ forest-dispersal-distance
 forest-dispersal-distance
 1.01
 10
-1.01
+3.1
 0.01
 1
 NIL
@@ -871,7 +872,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
