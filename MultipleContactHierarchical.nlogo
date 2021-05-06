@@ -287,7 +287,7 @@ initial-population
 initial-population
 0
 2000
-1.0
+1038.0
 1
 1
 NIL
@@ -384,6 +384,16 @@ false
 "" ""
 PENS
 "default" 1.0 0 -11221820 true "" "plot calc-shannon-diversity"
+
+TEXTBOX
+395
+550
+570
+631
+FALTA TERMINAR - Es neutral no jerarquico
+16
+15.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -727,7 +737,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

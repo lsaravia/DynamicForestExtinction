@@ -6,6 +6,7 @@ patches-own [ degraded ]
 globals [ total-patches
           gr-birds             ; Probability of growth
           mr-birds             ; Probability of migration
+          re-birds             ; Probability of Replacement
           powexp               ; power law exponent
 ]
 
@@ -81,6 +82,7 @@ to go
   set gr-birds birth-rate-birds /( death-rate-birds + birth-rate-birds)
   ;;print (word "gr-birds:" gr-birds " mr-birds:" mr-birds)
 
+  set re-birds replacement-rate /( death-rate-birds + birth-rate-birds)
   ;;
   ;; calculate power law exponent from dispersal distance, deriving the power exponent of a distribution with mean = birds-dispersal-distance
   ;;
@@ -94,6 +96,10 @@ to go
     birds-behavior = "BirthSelection" [
       ask birds [ grow-birds-neutral]
     ]
+    birds-behavior = "Hierarchical" [
+      ask birds [ grow-birds-hierarchical]
+    ]
+
   )
 
   tick
@@ -198,19 +204,22 @@ to grow-birds-hierarchical
   [ die ]
   [
     let effective-dispersal  random-power-law-distance 1 powexp
+    let centerpatch patch-here
     ;;print word "Effective dispersal : " effective-dispersal
 
-    let target one-of patches in-radius effective-dispersal with [not any? birds-here]
-    ifelse target != nobody
+    let target max-one-of patches in-radius effective-dispersal [distance centerpatch]
+    if target != nobody and not [degraded] of target
     [
-      hatch-birds 1 [ move-to target ]
-    ]
-    [
-      let target1 one-of patches in-radius effective-dispersal with [self != patch-here]
-      if [species] of one-of birds-on target1 > species
-      [
-          ask birds-on target1 [die]
-          hatch-birds 1 [ move-to target1 ]
+      ifelse not any? birds-on target [
+        hatch-birds 1 [ move-to target ]
+      ][
+        if [species] of one-of birds-on target > species
+        [
+          if random-float 1 < re-birds [
+            ask birds-on target [die]
+            hatch-birds 1 [ move-to target ]
+          ]
+        ]
       ]
     ]
   ]
@@ -239,10 +248,25 @@ to-report calc-shannon-diversity
   ;;count birds with [species = i]]
 end
 
+to-report calc-number-of-species
+  let species-l n-values max-birds-species [i -> i]
+  let species-count []
+  ;;print total-species
+  foreach species-l [
+    i -> let species-p count birds with [species = i]
+    if species-p > 0 [
+      set species-count lput 1 species-count
+    ]
+  ]
+
+  report sum species-count
+  ;;count birds with [species = i]]
+end
+
 to fragmentation
 
   let width (world-width - 1) * prob-frag / 2
-  print (word "width " width)
+  ;print (word "width " width)
 
   ask patches [
     if abs pycor < width
@@ -341,7 +365,7 @@ birth-rate-birds
 birth-rate-birds
 0
 5
-2.59
+2.0
 .01
 1
 NIL
@@ -414,7 +438,7 @@ migration-rate-birds
 migration-rate-birds
 0
 5
-0.001
+1.0E-4
 0.0001
 1
 NIL
@@ -429,7 +453,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-3.37
+3.22
 0.01
 1
 NIL
@@ -497,7 +521,7 @@ prob-frag
 prob-frag
 0
 1
-0.0
+0.4
 .1
 1
 NIL
@@ -510,8 +534,8 @@ CHOOSER
 90
 birds-behavior
 birds-behavior
-"BirthSelection" "NoSelection"
-0
+"BirthSelection" "NoSelection" "Hierarchical"
+2
 
 SWITCH
 110
@@ -523,6 +547,39 @@ Video
 1
 1
 -1000
+
+SLIDER
+1080
+125
+1262
+158
+replacement-rate
+replacement-rate
+0
+5
+0.3
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+760
+520
+1020
+735
+Number of species
+NIL
+NIL
+0.0
+100.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot calc-number-of-species"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -875,7 +932,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
