@@ -13,7 +13,7 @@ globals [ total-patches
 extensions [
   table
   ;profiler
-  vid
+  ;vid
 ]
 
 to setup-ini
@@ -60,10 +60,10 @@ to setup
     ]
   ]
   if video [
-     vid:reset-recorder
-     vid:start-recorder
+;     vid:reset-recorder
+;     vid:start-recorder
           ; vid:record-interface
-     vid:record-view
+;     vid:record-view
   ]
 
   reset-ticks
@@ -73,9 +73,9 @@ end
 to go
 
   if ticks = 500 [
-    if video [
-        vid:save-recording "MultipleSpeciesNeutralMigrat.mp4"
-    ]
+;    if video [
+;        vid:save-recording "MultipleSpeciesNeutralMigrat.mp4"
+;    ]
     stop
   ]
 
@@ -109,7 +109,7 @@ to go
   tick
   if video [
         ;vid:record-interface
-        vid:record-view
+;        vid:record-view
   ]
 
 end
