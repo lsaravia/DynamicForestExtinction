@@ -8,7 +8,7 @@ globals [ total-patches   ; Measure the total number of patches
           powexp               ; power law exponent
         ]
 
-extensions [profiler]
+;extensions [profiler]
 
 to setup-ini
   clear-all
@@ -430,23 +430,6 @@ false
 PENS
 "default" 1.0 0 -13840069 true "" "plot count forest"
 "pen-1" 1.0 0 -1184463 true "" "plot count bushes "
-
-BUTTON
-20
-430
-134
-463
-Run profiler
-\nsetup-center\nprofiler:start\nrepeat 1000 [go]\nprofiler:stop          ;; stop profiling\nprint profiler:report  ;; view the results\nprofiler:reset         ;; clear the data
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 SLIDER
 940
