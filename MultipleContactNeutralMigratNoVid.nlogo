@@ -269,16 +269,15 @@ end
 
 to fragmentation
 
-  let width (world-width - 1) * prob-frag / 2
+  ;let width (world-width - 1) * prob-frag / 2
   ;print (word "width " width)
+  let degraded-patches prob-frag * world-width * world-height
+  ask n-of degraded-patches  patches  [
 
-  ask patches [
-    if abs pycor < width
-    [
-      set degraded true
-      set pcolor magenta
-      ask birds-here [die]
-    ]
+    set degraded true
+    set pcolor magenta
+    ask birds-here [die]
+
   ]
 
 end
@@ -442,7 +441,7 @@ migration-rate-birds
 migration-rate-birds
 0
 5
-1.0E-4
+0.001
 0.0001
 1
 NIL
@@ -539,7 +538,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-2
+1
 
 SWITCH
 110
