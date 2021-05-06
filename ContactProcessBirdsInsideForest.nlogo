@@ -8,7 +8,7 @@ globals [ total-patches   ; Measure the total number of patches
           powexp               ; power law exponent
         ]
 
-extensions [profiler]
+;extensions [profiler]
 
 to setup-ini
   clear-all
