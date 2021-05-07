@@ -6,6 +6,10 @@ globals [ total-patches   ; Measure the total number of patches
           gr-forest
           gr-bushes
           powexp               ; power law exponent
+          inv-rate-forest      ; Invasion rate of forest into bushes if negative the invasion goes inversely
+          inv-forest           ; probability of invations of forest into bushes
+          inv-bushes           ; probability of invations of forest into bushes
+          total-rate           ; total-rate of events
         ]
 
 ;extensions [profiler]
@@ -27,7 +31,7 @@ to setup
       sprout-forest 1 [ set color green set size 1]
       set bush-or-forest false
     ][
-      sprout-bushes 1 [ set color white set size .7]
+      bush-birth
       set bush-or-forest true
     ]
   ]
@@ -40,10 +44,10 @@ to setup-full
   let bush-or-forest true
   ask patches[
     ifelse bush-or-forest  [
-      sprout-forest 1 [set color green set size 1]
+      forest-birth
       set bush-or-forest false
     ][
-      sprout-bushes 1 [ set color white set size .7]
+      bush-birth
       set bush-or-forest true
     ]
   ]
@@ -57,10 +61,10 @@ to setup-center
   ask patches with [(abs pycor < 6) and (abs pxcor < 6)]
   [
     ifelse bush-or-forest  [
-      sprout-forest 1 [set color green set size 1]
+      forest-birth
       set bush-or-forest false
     ][
-      sprout-bushes 1 [ set color white set size .7]
+      bush-birth
       set bush-or-forest true
     ]
   ]
@@ -69,9 +73,30 @@ end
 
 to go
 
-  ;; updates the probabilities of growth
-  set gr-forest birth-rate-forest /( death-rate-forest + birth-rate-forest )
-  set gr-bushes birth-rate-bushes /(  death-rate-bushes + birth-rate-bushes )
+  ;; updates invation rate
+  ;;
+  set inv-rate-forest birth-rate-forest * contact-forest-bushes - birth-rate-bushes * contact-bushes-forest
+  ;; if positive forest invade/replace bushes
+
+  ;;
+  ;; Calculate growth probabilities
+  ;;
+  set gr-forest birth-rate-forest / ( death-rate-forest + birth-rate-forest )
+  set gr-bushes birth-rate-bushes / ( death-rate-bushes + birth-rate-bushes )
+
+  ;;
+  ;; Calculate invation probabilities
+  ;;
+  ifelse inv-rate-forest  > 0 [
+
+    set inv-forest inv-rate-forest  / ( death-rate-forest + birth-rate-forest )
+    set inv-bushes 0
+  ][
+    set inv-bushes (- inv-rate-forest )  / ( death-rate-bushes + birth-rate-bushes )
+    set inv-forest 0
+  ]
+  ;print (word "inv-rate-forest: " inv-rate-forest " inv-forest: " inv-forest " inv-bushes: " inv-bushes)
+
   ;;
   ;; calculate power law exponent from dispersal distance, deriving the power exponent of a distribution with mean = bushes-dispersal-distance
   ;;
@@ -85,9 +110,8 @@ to go
   let grow-bushes-event 1
 
   let repetitions count patches / 2 ; At default settings, there will be an average of 1 event per patch.
-                                    ; SHOULD BE PER TURTLE but per patch seems to be faster
   let events shuffle (sentence
-    n-values random-poisson (repetitions * gr-forest)      [ grow-forest-event ]
+    n-values random-poisson (repetitions * gr-forest) [ grow-forest-event ]
     n-values random-poisson (repetitions * gr-bushes) [ grow-bushes-event ]
   )
 
@@ -97,7 +121,7 @@ to go
     if event = grow-forest-event [
 
       let target one-of forest
-      ;show (word "bush target: " target)
+      ;show (word "Forest target: " target)
       if target != nobody [
         ask target [ grow-forest ]
       ]
@@ -111,9 +135,6 @@ to go
     ]
   ]
 
-
-
-
   ;calc-bushes-mean
 
   tick
@@ -125,7 +146,6 @@ end
 to grow-forest
   ifelse random-float 1 > gr-forest
   [
-    ;show "1 forest died"
     die
   ]
   [
@@ -133,15 +153,27 @@ to grow-forest
     let centerpatch patch-here
 
     ask max-one-of patches in-radius effective-dispersal [distance centerpatch][
-      ;;show (word "in-radius eff-disp " effective-dispersal " - Real distance " distance centerpatch)
-      if not any? bushes-here and not any? forest-here [
-         sprout-forest 1 [set color green set size 1]
+      ifelse not any? turtles-here [
+        forest-birth
+        ;show word "Empty patch Forest grow from: " centerpatch
+      ][
+        if any? bushes-here and inv-forest > 0 [
+          if random-float 1 < inv-forest [
+            ask bushes-here [ die ]
+            forest-birth
+            ;show word "Forest invade Bushes p-invasion: " inv-forest
 
+          ]
+        ]
       ]
     ]
+
   ]
 end
 
+to forest-birth
+  sprout-forest 1 [set color green set size 1]
+end
 ;;
 ;; bushes procedure: if newborns select a suitable patch if exist
 ;;
@@ -153,13 +185,26 @@ to grow-bushes [powexponent]
     let centerpatch patch-here
 
     ask max-one-of patches in-radius effective-dispersal [distance centerpatch][
-      if not any? bushes-here and not any? forest-here [
-        sprout-bushes 1 [ set color white set size .7 ]
+      ifelse not any? turtles-here [
+        bush-birth
+        ;show word "Empty patch Bushes grow from: " centerpatch
+      ][
+        if any? forest-here and inv-bushes > 0 [
+          if random-float 1 < inv-bushes [
+            ask forest-here [ die ]
+            bush-birth
+            ;show word "Bushes invade Forest p-invasion: " inv-bushes
+
+          ]
+        ]
       ]
     ]
   ]
 end
 
+to bush-birth
+  sprout-bushes 1 [ set color white set size .7 ]
+end
 
 to-report habitat-proportion
   report count forest / total-patches
@@ -250,10 +295,10 @@ NIL
 0
 
 MONITOR
-761
-186
-936
-231
+760
+220
+935
+265
 Proportion of forest patches
 habitat-proportion
 6
@@ -284,7 +329,7 @@ birth-rate-forest
 birth-rate-forest
 0
 5
-1.0
+1.88
 0.01
 1
 NIL
@@ -299,7 +344,7 @@ death-rate-forest
 death-rate-forest
 0
 5
-0.1
+0.8
 .1
 1
 NIL
@@ -307,9 +352,9 @@ HORIZONTAL
 
 MONITOR
 20
-325
+320
 129
-370
+365
 Lambda forest
 birth-rate-forest / death-rate-forest
 6
@@ -359,7 +404,7 @@ birth-rate-bushes
 birth-rate-bushes
 0
 5
-0.64
+3.06
 .01
 1
 NIL
@@ -374,17 +419,17 @@ death-rate-bushes
 death-rate-bushes
 0
 5
-0.1
+0.6
 0.1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-761
-240
-934
-285
+760
+275
+933
+320
 Proportion of bushes
 count bushes / total-patches
 6
@@ -392,10 +437,10 @@ count bushes / total-patches
 11
 
 MONITOR
-762
-121
-862
-166
+765
+130
+865
+175
 lambda bushes
 birth-rate-bushes / death-rate-bushes
 6
@@ -403,10 +448,10 @@ birth-rate-bushes / death-rate-bushes
 11
 
 SWITCH
-16
-384
-215
-417
+21
+419
+220
+452
 check-bushes-extinction
 check-bushes-extinction
 1
@@ -415,9 +460,9 @@ check-bushes-extinction
 
 PLOT
 760
-313
+340
 1009
-493
+520
 Populations Numbers
 NIL
 NIL
@@ -441,7 +486,7 @@ bushes-dispersal-distance
 bushes-dispersal-distance
 1.01
 10
-10.0
+1.01
 0.01
 1
 NIL
@@ -456,11 +501,52 @@ forest-dispersal-distance
 forest-dispersal-distance
 1.01
 10
-1.01
+2.0
 0.01
 1
 NIL
 HORIZONTAL
+
+SLIDER
+20
+275
+232
+308
+contact-forest-bushes
+contact-forest-bushes
+0
+1
+0.6
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+940
+80
+1157
+113
+contact-bushes-forest
+contact-bushes-forest
+0
+1
+0.4
+0.1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+35
+495
+137
+540
+NIL
+inv-rate-forest
+2
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

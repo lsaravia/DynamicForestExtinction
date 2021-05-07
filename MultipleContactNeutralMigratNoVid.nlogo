@@ -72,7 +72,7 @@ end
 
 to go
 
-  if ticks = 500 [
+  if ticks = 1500 [
 ;    if video [
 ;        vid:save-recording "MultipleSpeciesNeutralMigrat.mp4"
 ;    ]
