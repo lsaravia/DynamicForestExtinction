@@ -21,16 +21,16 @@ end
 to setup
   setup-ini
   let bush-or-forest true
+  let ini-f int initial-population * initial-forest-proportion
+  let ini-b initial-population - ini-f
 
-  ask n-of initial-population patches [
-    ifelse bush-or-forest  [
-      sprout-forest 1 [ set color green set size 1]
-      set bush-or-forest false
-    ][
-      sprout-bushes 1 [ set color white set size .7]
-      set bush-or-forest true
-    ]
+  ask n-of ini-f patches [
+    sprout-forest 1 [ set color green set size 1]
   ]
+  ask n-of ini-b patches [
+    sprout-bushes 1 [ set color white set size .7]
+  ]
+
   reset-ticks
 end
 
@@ -189,9 +189,9 @@ to-report random-power-law-distance [ xmin alpha ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-231
+240
 10
-744
+753
 524
 -1
 -1
@@ -216,10 +216,10 @@ ticks
 30.0
 
 BUTTON
-17
-55
-112
-88
+15
+100
+110
+133
 setup
 setup
 NIL
@@ -233,10 +233,10 @@ NIL
 1
 
 BUTTON
-121
-94
-216
-127
+119
+139
+214
+172
 NIL
 go
 T
@@ -250,10 +250,10 @@ NIL
 0
 
 MONITOR
-761
-186
-936
-231
+765
+170
+940
+215
 Proportion of forest patches
 habitat-proportion
 6
@@ -267,19 +267,19 @@ SLIDER
 48
 initial-population
 initial-population
-1
-10001
-11.0
+0
+10000
+5000.0
 10
 1
 NIL
 HORIZONTAL
 
 SLIDER
-19
-140
-191
-173
+17
+185
+189
+218
 birth-rate-forest
 birth-rate-forest
 0
@@ -291,16 +291,16 @@ NIL
 HORIZONTAL
 
 SLIDER
-19
-182
-191
-215
+17
+227
+189
+260
 death-rate-forest
 death-rate-forest
 0
 5
-0.1
-.1
+0.2
+.01
 1
 NIL
 HORIZONTAL
@@ -317,10 +317,10 @@ birth-rate-forest / death-rate-forest
 11
 
 BUTTON
-19
-94
-112
-127
+17
+139
+110
+172
 NIL
 setup-full
 NIL
@@ -334,10 +334,10 @@ NIL
 1
 
 BUTTON
-120
-55
-217
-88
+118
+100
+215
+133
 NIL
 setup-center
 NIL
@@ -351,40 +351,40 @@ NIL
 1
 
 SLIDER
-761
-39
-933
-72
+765
+23
+937
+56
 birth-rate-bushes
 birth-rate-bushes
 0
 5
-0.64
+1.0
 .01
 1
 NIL
 HORIZONTAL
 
 SLIDER
-762
-80
-934
-113
+766
+64
+938
+97
 death-rate-bushes
 death-rate-bushes
 0
 5
-0.1
-0.1
+0.2
+0.01
 1
 NIL
 HORIZONTAL
 
 MONITOR
-761
-240
-934
-285
+765
+224
+938
+269
 Proportion of bushes
 count bushes / total-patches
 6
@@ -414,50 +414,65 @@ check-bushes-extinction
 -1000
 
 PLOT
-760
-313
-1009
-493
+764
+297
+1013
+477
 Populations Numbers
 NIL
 NIL
 0.0
 100.0
 0.0
-1.0
+10.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -13840069 true "" "plot count forest"
+"default" 1.0 0 -13840069 true "" "plot count forest "
 "pen-1" 1.0 0 -1184463 true "" "plot count bushes "
 
 SLIDER
-940
-39
-1132
-72
+944
+23
+1136
+56
 bushes-dispersal-distance
 bushes-dispersal-distance
 1.01
 10
-10.0
+1.01
 0.01
 1
 NIL
 HORIZONTAL
 
 SLIDER
-20
-225
-190
-258
+18
+270
+188
+303
 forest-dispersal-distance
 forest-dispersal-distance
 1.01
 10
-1.01
+6.68
 0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+15
+55
+232
+88
+initial-forest-proportion
+initial-forest-proportion
+0
+1
+0.5
+.1
 1
 NIL
 HORIZONTAL
@@ -465,7 +480,7 @@ HORIZONTAL
 @#$#@#$#@
 ## WHAT IS IT?
 
-This is a model that explores how is the population dynamics of a species (bushes) that lives in a dynamical habitat (forest), and how fragmentation or loss of habitat can influence the extinction of the species that lives within it. I call the habitat forest and bushes are the organisms that live inside the forest. 
+This is a model that explores the population dynamics of two species (bushes and forest) that lives in fixed area and compete by space, once the settle in a site neither of species can replace the other until it dies an leave the site empty.
 
 ## HOW IT WORKS
 
