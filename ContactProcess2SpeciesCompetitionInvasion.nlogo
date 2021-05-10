@@ -24,20 +24,18 @@ end
 
 to setup
   setup-ini
-  let bush-or-forest true
+  let ini-f int initial-population * initial-forest-proportion
+  let ini-b initial-population - ini-f
 
-  ask n-of initial-population patches [
-    ifelse bush-or-forest  [
-      sprout-forest 1 [ set color green set size 1]
-      set bush-or-forest false
-    ][
-      bush-birth
-      set bush-or-forest true
-    ]
+  ask n-of ini-f patches [
+    sprout-forest 1 [ set color green set size 1]
   ]
+  ask n-of ini-b patches [
+    sprout-bushes 1 [ set color white set size .7]
+  ]
+
   reset-ticks
 end
-
 
 to setup-full
   setup-ini
@@ -234,9 +232,9 @@ to-report random-power-law-distance [ xmin alpha ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-231
+240
 10
-744
+753
 524
 -1
 -1
@@ -261,10 +259,10 @@ ticks
 30.0
 
 BUTTON
-17
-55
-112
-88
+15
+110
+110
+143
 setup
 setup
 NIL
@@ -278,10 +276,10 @@ NIL
 1
 
 BUTTON
-121
-94
-216
-127
+119
+149
+214
+182
 NIL
 go
 T
@@ -295,9 +293,9 @@ NIL
 0
 
 MONITOR
-760
+765
 220
-935
+940
 265
 Proportion of forest patches
 habitat-proportion
@@ -312,19 +310,19 @@ SLIDER
 48
 initial-population
 initial-population
-1
-10001
-11.0
+0
+10000
+5000.0
 10
 1
 NIL
 HORIZONTAL
 
 SLIDER
-19
-140
-191
-173
+17
+195
+189
+228
 birth-rate-forest
 birth-rate-forest
 0
@@ -336,10 +334,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-19
-182
-191
-215
+17
+237
+189
+270
 death-rate-forest
 death-rate-forest
 0
@@ -351,10 +349,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-20
-320
-129
-365
+18
+375
+127
+420
 Lambda forest
 birth-rate-forest / death-rate-forest
 6
@@ -362,10 +360,10 @@ birth-rate-forest / death-rate-forest
 11
 
 BUTTON
-19
-94
-112
-127
+17
+149
+110
+182
 NIL
 setup-full
 NIL
@@ -379,10 +377,10 @@ NIL
 1
 
 BUTTON
-120
-55
-217
-88
+118
+110
+215
+143
 NIL
 setup-center
 NIL
@@ -426,9 +424,9 @@ NIL
 HORIZONTAL
 
 MONITOR
-760
+765
 275
-933
+938
 320
 Proportion of bushes
 count bushes / total-patches
@@ -448,10 +446,10 @@ birth-rate-bushes / death-rate-bushes
 11
 
 SWITCH
-21
-419
-220
-452
+15
+485
+214
+518
 check-bushes-extinction
 check-bushes-extinction
 1
@@ -459,9 +457,9 @@ check-bushes-extinction
 -1000
 
 PLOT
-760
+765
 340
-1009
+1014
 520
 Populations Numbers
 NIL
@@ -493,10 +491,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-20
-225
-190
-258
+18
+280
+188
+313
 forest-dispersal-distance
 forest-dispersal-distance
 1.01
@@ -508,10 +506,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-20
-275
-232
-308
+18
+330
+230
+363
 contact-forest-bushes
 contact-forest-bushes
 0
@@ -538,15 +536,30 @@ NIL
 HORIZONTAL
 
 MONITOR
-35
-495
-137
-540
+18
+425
+120
+470
 NIL
 inv-rate-forest
 2
 1
 11
+
+SLIDER
+15
+60
+237
+93
+initial-forest-proportion
+initial-forest-proportion
+0
+1
+0.5
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
