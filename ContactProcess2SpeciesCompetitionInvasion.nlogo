@@ -327,7 +327,7 @@ birth-rate-forest
 birth-rate-forest
 0
 5
-1.88
+0.02
 0.01
 1
 NIL
@@ -341,9 +341,9 @@ SLIDER
 death-rate-forest
 death-rate-forest
 0
-5
-0.8
-.1
+2
+0.01
+.01
 1
 NIL
 HORIZONTAL
@@ -401,8 +401,8 @@ SLIDER
 birth-rate-bushes
 birth-rate-bushes
 0
-5
-3.06
+15
+7.2
 .01
 1
 NIL
@@ -417,7 +417,7 @@ death-rate-bushes
 death-rate-bushes
 0
 5
-0.6
+2.2
 0.1
 1
 NIL
@@ -499,7 +499,7 @@ forest-dispersal-distance
 forest-dispersal-distance
 1.01
 10
-2.0
+1.01
 0.01
 1
 NIL
@@ -514,7 +514,7 @@ contact-forest-bushes
 contact-forest-bushes
 0
 1
-0.6
+0.9
 0.1
 1
 NIL
@@ -529,8 +529,8 @@ contact-bushes-forest
 contact-bushes-forest
 0
 1
-0.4
-0.1
+0.01
+0.01
 1
 NIL
 HORIZONTAL
