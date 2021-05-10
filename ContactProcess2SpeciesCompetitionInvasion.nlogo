@@ -136,7 +136,7 @@ to go
   ;calc-bushes-mean
 
   tick
-  if habitat-proportion = 0 [stop]
+  ;if habitat-proportion = 0 [stop]
   if (check-bushes-extinction = true) and (bushes-proportion = 0) [stop]
 
 end
