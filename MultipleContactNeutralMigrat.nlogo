@@ -72,7 +72,7 @@ end
 
 to go
 
-  if ticks = 500 [
+  if ticks = 1500 [
     if video [
         vid:save-recording "MultipleSpeciesNeutralMigrat.mp4"
     ]
@@ -281,12 +281,47 @@ to fragmentation
   ]
 
 end
+
+to deforestation
+  let radius 5
+  let degraded-patches prob-frag * world-width * world-height
+
+  ask patches [ set degraded true ]
+
+  let nearby moore-offsets degraded-patch-size true
+  loop [
+
+    ask one-of patches [
+     ask patches at-points nearby [
+        set degraded false
+      ]
+    ]
+    let num-degraded count patches with [ degraded ]
+    print (word "num-degraded:  " num-degraded)
+    if num-degraded <= degraded-patches [
+      ask patches with [degraded ]
+      [
+        set pcolor magenta
+        ask birds-here [die]
+      ]
+      stop
+    ]
+  ]
+end
+
+
+to-report moore-offsets [n include-center?]
+  let result [list pxcor pycor] of patches with [abs pxcor <= n and abs pycor <= n]
+  ifelse include-center?
+    [ report result ]
+    [ report remove [0 0] result ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 230
 10
-743
-524
+738
+519
 -1
 -1
 5.0
@@ -299,10 +334,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--50
-50
--50
-50
+0
+99
+0
+99
 1
 1
 1
@@ -368,7 +403,7 @@ birth-rate-birds
 birth-rate-birds
 0
 5
-2.0
+4.0
 .01
 1
 NIL
@@ -400,7 +435,7 @@ initial-population
 initial-population
 0
 2000
-0.0
+1000.0
 1
 1
 NIL
@@ -538,7 +573,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-0
+2
 
 SWITCH
 110
@@ -583,6 +618,38 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot calc-number-of-species"
+
+BUTTON
+20
+490
+147
+523
+NIL
+Deforestation
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+20
+540
+222
+573
+degraded-patch-size
+degraded-patch-size
+1
+40
+3.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
