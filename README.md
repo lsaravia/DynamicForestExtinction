@@ -22,11 +22,10 @@
 	2. A completely neutral model, where species disperse to empty sites if they are available 
 	3. A neutral hierarchical model where species with a higher number replace species lower number species with a given rate. 
 
-	Another feature is a fragmentation button that adds degraded sites that cannot be colonized.  
+	Another feature are deforestation buttons that adds degraded sites that cannot be colonized.  
 
-	There is a version without video extension that is identical to the full version but it can be used with netlogoweb **MultipleContactNeutralMigratNoVid.nlogo**:
 
-	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/MultipleContactNeutralMigratNoVid.nlogo>
+	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/MultipleContactNeutralMigrat.nlogo>
 
 
 ## References
