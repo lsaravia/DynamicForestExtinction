@@ -283,12 +283,13 @@ to fragmentation
 end
 
 to deforestation
-  let radius 5
+
   let degraded-patches prob-frag * world-width * world-height
 
   ask patches [ set degraded true ]
 
-  let nearby moore-offsets patch-size true
+  let nearby moore-offsets habitat-patch-size true
+
   loop [
 
     ask one-of patches [
@@ -573,7 +574,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-2
+0
 
 SWITCH
 110
@@ -641,11 +642,11 @@ SLIDER
 540
 222
 573
-patch-size
-patch-size
+habitat-patch-size
+habitat-patch-size
 1
 40
-3.0
+10.0
 1
 1
 NIL
