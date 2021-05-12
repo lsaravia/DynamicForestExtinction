@@ -492,7 +492,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-3.0
+1.01
 0.01
 1
 NIL
