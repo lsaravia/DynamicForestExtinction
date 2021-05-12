@@ -456,7 +456,7 @@ forest-dispersal-distance
 forest-dispersal-distance
 1.01
 10
-6.68
+1.01
 0.01
 1
 NIL
