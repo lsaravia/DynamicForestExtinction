@@ -574,7 +574,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-0
+2
 
 SWITCH
 110
