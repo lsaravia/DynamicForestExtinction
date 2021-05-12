@@ -288,7 +288,7 @@ to deforestation
 
   ask patches [ set degraded true ]
 
-  let nearby moore-offsets degraded-patch-size true
+  let nearby moore-offsets patch-size true
   loop [
 
     ask one-of patches [
@@ -297,7 +297,7 @@ to deforestation
       ]
     ]
     let num-degraded count patches with [ degraded ]
-    print (word "num-degraded:  " num-degraded)
+    ;print (word "num-degraded:  " num-degraded)
     if num-degraded <= degraded-patches [
       ask patches with [degraded ]
       [
@@ -435,7 +435,7 @@ initial-population
 initial-population
 0
 2000
-1000.0
+0.0
 1
 1
 NIL
@@ -491,7 +491,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-1.01
+3.0
 0.01
 1
 NIL
@@ -502,7 +502,7 @@ PLOT
 295
 1015
 505
-Total number
+Total number of individuals
 NIL
 NIL
 0.0
@@ -641,8 +641,8 @@ SLIDER
 540
 222
 573
-degraded-patch-size
-degraded-patch-size
+patch-size
+patch-size
 1
 40
 3.0
