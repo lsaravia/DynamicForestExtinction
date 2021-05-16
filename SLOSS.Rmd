@@ -1,0 +1,282 @@
+---
+title: "Single large or Several Small SLOSS "
+author: "Leonardo A. Saravia"
+date: "9/3/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE,echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+needed_packages <- c(
+    "tidyverse"
+  , "lubridate"
+  , "nlrx")
+
+lapply(needed_packages, function(x) { if(!require(x,character.only = TRUE)) install.packages(x)} )
+
+theme_set(theme_bw())
+source("R/functions.R")
+
+
+#### make changes
+# Unix default NetLogo installation path (adjust to your needs!):
+netlogopath <- file.path("/home/leonardo/NetLogo")
+simfolder <- "/home/leonardo/Dropbox/Projects/ariadnaNL"
+modelpath <- file.path(simfolder, "ariadnaNL.nlogo")
+outpath <- file.path(simfolder,"Simulations")
+
+# If not defined set the JAVA version of your local 
+if(Sys.getenv("JAVA_HOME")==""){
+  Sys.setenv(JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64")
+  ## "/usr/lib/jvm/java-8-oracle"
+}
+
+nl <- nl(nlversion = "6.1.1",
+         nlpath = netlogopath,
+         modelpath = modelpath,
+         jvmmem = 2048)
+
+
+```
+
+## Why do several small patches hold more species that few large patches?
+
+## Simulaciones para ajuste usando Latin Hypercubic Sampling 
+
+* Incursion by common, generalist species. 
+* Minimun patch size selective extinction and nestedness
+* Time since patch creation, accumulation of species losses
+* Habitat heterogeneity environmental clumping patchy species distribution
+* Dominance of colonization/inmigration
+* Population variability spreading the risk
+
+## Lambda = 4
+
+```{r SLOSS_lambda4_simulations}
+require(tidyverse)
+
+source("R/functions.r")
+
+# Neutral communities 
+#
+mdl <- read_netlogo_simul("Simulations/MultipleContactNeutralMigrat_NoSelection_pf06_hpf3-59_dd1-3.csv")
+
+
+names(mdl)
+#
+# Plot for neutral communities 
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, habitat_patch_size) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(deltaPop = (count_birds - birds_at_deforestation )/ birds_at_deforestation  )
+
+
+require(plotly)
+plot_ly(data=mdl1, x=~birds_dispersal_distance, y=~habitat_patch_size, z=~calc_number_of_species, type="scatter3d", mode="markers", color=~calc_number_of_species, marker = list(size = 1))
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()
+
+# Plot for hierarchical communities 
+#
+mdl <- read_netlogo_simul("Simulations/MultipleContactNeutralMigrat_Hierarchical_pf06_hpf3-59_dd1-3.csv")
+
+
+#
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, habitat_patch_size) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(deltaPop = (count_birds - birds_at_deforestation )/ birds_at_deforestation  )
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()
+
+# Plot for BirthSelection communities 
+#
+mdl <- read_netlogo_simul("Simulations/MultipleContactNeutralMigrat_BirthSelection_pf06_hpf3-59_dd1-3.csv")
+
+
+#
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, habitat_patch_size) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(deltaPop = (count_birds - birds_at_deforestation )/ birds_at_deforestation  )
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()
+
+```
+
+
+## Lambda = 2
+
+```{r SLOSS_lambda4_simulations}
+require(tidyverse)
+
+source("R/functions.r")
+
+# Neutral communities 
+#
+mdl <- read_netlogo_simul("Simulations/MultipleContactNeutralMigrat_NoSelection_pf06_hpf3-59_dd1-3_lambda2.csv")
+
+
+names(mdl)
+#
+# Plot for neutral communities 
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, habitat_patch_size) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(deltaPop = (count_birds - birds_at_deforestation )/ birds_at_deforestation  )
+
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()
+
+# Plot for hierarchical communities 
+#
+mdl <- read_netlogo_simul("Simulations/MultipleContactNeutralMigrat_Hierarchical_pf06_hpf3-59_dd1-3_lambda2.csv")
+
+
+#
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, habitat_patch_size) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(deltaPop = (count_birds - birds_at_deforestation )/ birds_at_deforestation  )
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()
+
+
+# Plot for BirthSelection communities 
+#
+mdl <- read_netlogo_simul("Simulations/MultipleContactNeutralMigrat_BirthSelection_pf06_hpf3-59_dd1-3_lambda2.csv")
+
+
+#
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, habitat_patch_size) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(deltaPop = (count_birds - birds_at_deforestation )/ birds_at_deforestation  )
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>%
+  mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()
+
+```
+
+
+## Not fragmented communities Lambda = 1.7 - 4
+
+```{r SLOSS_notfrag_simulations}
+require(tidyverse)
+
+source("R/functions.r")
+
+# Neutral communities 
+#
+mdl <- read_netlogo_simul("Simulations/NoHiBi_pf00_hpf3_dd1-3_lambda1.7-4.csv")
+
+
+names(mdl)
+#
+# Plot for neutral communities 
+#
+mdl1 <- mdl %>% group_by(birds_dispersal_distance, birth_rate_birds,birds_behavior) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(birth_rate_birds = factor(birth_rate_birds)  )
+
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=birth_rate_birds)) + geom_point() + scale_color_viridis_d() + facet_wrap( ~birds_behavior )  + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=deltaPop,color=habitat_patch_size)) + geom_point() + scale_color_viridis_c(guide = FALSE) + facet_wrap( ~habitat_patch_size ) + theme_bw()
+
+mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>%  mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=birth_rate_birds,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()+ facet_wrap( ~birds_behavior )
+
+```
+
+
+
+
+
+
+```{r gen_fit_lhs, echo=FALSE, tidy=TRUE, message=FALSE, warning=FALSE, eval=FALSE}
+
+nl@experiment <- experiment(expname="world201_Beta30_50_viaje0_3_trabajo4_8",
+                            outpath=outpath,
+                            repetition=1,
+                            tickmetrics="true",
+                            idsetup="setup",
+                            idgo="go",
+                            runtime=365,
+                            metrics=c("count personas", "nro-hospitalizados", "nro-recuperados", "nro-fallecidos" ),
+                              variables = list("Horas-en-viaje" = list(min=0, max=3, qfun="qunif"),
+                                               "beta" = list(min=0.30, max=0.50, qfun="qunif"),
+                                               "proporcion-hospitalizados"= list(min=0.20, max=0.45,qfun="qunif"),
+                                               "Horas-en-trabajo"=list(min=4, max=8, qfun="qunif")
+                                               ),                            
+                              constants = list("world-width" = 201,
+                                               "world-height" = 201,
+                                               "infectados-iniciales" = 10,
+                                               "max-personas-por-casa" = 10,
+                                               "max-personas-por-trabajo" = 100,
+                                               "periodo-latencia"=3.6,
+                                               "Proporcion-asintomaticos"=0.43,
+                                               "periodo-presintomatico"=1.5,
+                                               "periodo-asintomatico"= 7.0,
+                                               "periodo-hospitalizacion-fallecido" = 13.2,
+                                               "periodo-hospitalizacion-recuperado" = 15,
+                                               "Proporcion-fallecimiento-saturada"= 0.5,
+                                               "Fallecido-sin-hospitalizacion"=0.18,
+                                               "Proporcion-fallecimiento-hospitalizados"=0.09,
+                                               "periodo-pre-hospitalizacion"= 2.5,
+                                               "capacidad-de-camas"= 10000
+                                             ))
+
+#
+# Set a latin hypercubic design 
+#
+nl@simdesign <- simdesign_lhs(nl=nl,
+                               samples=300,
+                               nseeds=4,
+                               precision=2)
+
+# run in Paralell 
+#
+require(future)
+plan(multisession)
+require(tictoc)
+tic()
+results <- run_nl_all(nl,split = 10)
+toc()
+plan(sequential)
+names(results)
+
+#
+# Write the output
+#
+setsim(nl, "simoutput") <- results 
+write_simoutput(nl)
+```
+

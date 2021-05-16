@@ -8,6 +8,7 @@ globals [ total-patches
           mr-birds             ; Probability of migration
           re-birds             ; Probability of Replacement
           powexp               ; power law exponent
+  birds-at-deforestation
 ]
 
 extensions [
@@ -71,8 +72,11 @@ to setup
 end
 
 to go
-
-  if ticks = 1500 [
+  if deforestation-at-time != 0  and ticks = deforestation-at-time [
+    regular-deforestation
+    set birds-at-deforestation count birds
+  ]
+  if ticks = end-time [
     ;if video [
     ;    vid:save-recording "MultipleSpeciesNeutralMigrat.mp4"
     ;]
@@ -282,10 +286,117 @@ to fragmentation
 
 end
 
-to deforestation
+; The habitat left has a regular patch distribution
+;
+to regular-deforestation
+
+  let degraded-patches prob-frag * world-width * world-height  ; number of degraded patches
+  let h 1 - prob-frag                                      ; Propotion of habitat
+  let p habitat-patch-size + 1                         ; Side of the patch
+
+  let n world-width * world-height * h / (p * p )          ; Number of patches
+  let prow int sqrt n                                      ; Number of rows of patches
+  let pos ( world-width -  p * prow ) / prow               ; position of the edge of the patch and distance between patches
+  ;print (word "Number of patches: " n " Number per row: "  prow  " Position: " pos " Side of patch: " p)
+
+  let pcenter  pos +  habitat-patch-size + 1
+
+  ask patches [ set degraded true ]
+  let nearby moore-offsets habitat-patch-size true
+
+  let prange range (  n - 1 )
+  foreach prange [ x ->
+    let xx  x mod prow + 1
+    let yy  int ( x / prow ) + 1
+
+    let coordx  ( x mod prow ) * pcenter
+    let coordy  ( int ( x / prow )  ) * pcenter
+
+    ;print (word "coord y: "  coordy  " coord x: " coordx)
+    ask patch coordx coordy [
+      ask patches at-points nearby [
+        set degraded false
+      ]
+    ]
+  ]
+  ask patches with [degraded ]
+      [
+        set pcolor magenta
+        ask birds-here [die]
+      ]
+
+  correct-deforestation degraded-patches
+
+end
+
+;
+; correct deforestation
+;
+to correct-deforestation [degraded-p]
+  let num-degraded count patches with [degraded ] - degraded-p
+  if num-degraded > 0 [
+    let edge-degraded patches with [ degraded and any? neighbors with [not degraded] ]
+    ask up-to-n-of num-degraded edge-degraded [
+      set degraded false
+      set pcolor black
+    ]
+  ]
+  if num-degraded < 0 [
+    let edge-degraded patches with [ not degraded and any? neighbors with [degraded] ]
+    ask up-to-n-of ( abs num-degraded ) edge-degraded [
+      set degraded true
+      set pcolor magenta
+    ]
+
+
+  ]
+
+end
+
+to make-cluster
+  let degraded-patches prob-frag * world-width * world-height  ; number of degraded patches
+  let h 1 - prob-frag                                      ; Propotion of habitat
+  let p habitat-patch-size + 1                         ; Side of the patch
+
+  let n world-width * world-height * h / (p * p )          ; Number of patches
+  let prow int sqrt n                                      ; Number of rows of patches
+  let pos ( world-width -  p * prow ) / prow               ; position of the edge of the patch and distance between patches
+
+  let nearby moore-offsets habitat-patch-size true
+
+  ask patches [ set degraded true  ]
+
+  loop [
+    let cluster [patches at-points nearby ] of one-of patches with [degraded]
+    let neigh patch-set [ neighbors ] of cluster
+    let border neigh with [not member? self cluster]
+    let expneigh patch-set [ patches in-radius ( pos ) ] of border
+
+    if all? expneigh [ degraded ] [
+      ask cluster [
+        set degraded false
+        set pcolor brown
+
+      ]
+    ]
+    let num-degraded count patches with [ degraded ]
+    print (word "num-degraded:  " num-degraded)
+    if num-degraded <= degraded-patches [
+      ask patches with [degraded ]
+      [
+        set pcolor magenta
+        ask birds-here [die]
+      ]
+      stop
+    ]
+
+  ]
+
+end
+
+to block-deforestation
 
   let degraded-patches prob-frag * world-width * world-height
-
   ask patches [ set degraded true ]
 
   let nearby moore-offsets habitat-patch-size true
@@ -305,9 +416,11 @@ to deforestation
         set pcolor magenta
         ask birds-here [die]
       ]
+      correct-deforestation degraded-patches
       stop
     ]
   ]
+
 end
 
 
@@ -321,11 +434,11 @@ end
 GRAPHICS-WINDOW
 230
 10
-738
-519
+749
+530
 -1
 -1
-5.0
+5.11
 1
 10
 1
@@ -404,7 +517,7 @@ birth-rate-birds
 birth-rate-birds
 0
 5
-4.0
+2.0
 .01
 1
 NIL
@@ -492,7 +605,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-1.01
+3.0
 0.01
 1
 NIL
@@ -560,8 +673,8 @@ prob-frag
 prob-frag
 0
 1
-0.5
-.1
+0.6
+.01
 1
 NIL
 HORIZONTAL
@@ -623,10 +736,10 @@ PENS
 BUTTON
 20
 490
-147
+192
 523
 NIL
-Deforestation
+Block-deforestation
 NIL
 1
 T
@@ -639,15 +752,73 @@ NIL
 
 SLIDER
 20
-540
+570
 222
-573
+603
 habitat-patch-size
 habitat-patch-size
 1
-40
-10.0
+100
+29.0
 1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+20
+530
+202
+563
+NIL
+regular-deforestation
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+15
+615
+232
+660
+Efective degraded proportion
+count patches with [ degraded ] / total-patches
+5
+1
+11
+
+SLIDER
+20
+670
+227
+703
+Deforestation-at-time
+Deforestation-at-time
+0
+400
+300.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+20
+710
+192
+743
+end-time
+end-time
+0
+2000
+1600.0
+100
 1
 NIL
 HORIZONTAL
@@ -1007,6 +1178,379 @@ NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="BirthSelection_pf06_hpf3-59_dd1-3" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoSelection_pf06_hpf3-59_dd1-3" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Hierarchical_pf06_hpf3-59_dd1-3" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;Hierarchical&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="BirthSelection_pf06_hpf3-59_dd1-3_lambda2" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoSelection_pf06_hpf3-59_dd1-3_lambda2" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoHiBi_pf00_hpf3_dd1-3_lambda1.7-4" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="1.7"/>
+      <value value="2"/>
+      <value value="3"/>
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+      <value value="&quot;Hierarchical&quot;"/>
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Hierarchical_pf06_hpf3-59_dd1-3_lambda2" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;Hierarchical&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
