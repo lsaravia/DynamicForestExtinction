@@ -75,6 +75,9 @@ to go
   if deforestation-at-time != 0  and ticks = deforestation-at-time [
     regular-deforestation
     set birds-at-deforestation count birds
+    if migration0-at-deforestation [
+      set migration-rate-birds 0
+    ]
   ]
   if ticks = end-time [
     ;if video [
@@ -434,11 +437,11 @@ end
 GRAPHICS-WINDOW
 230
 10
-749
-530
+747
+528
 -1
 -1
-5.11
+5.1
 1
 10
 1
@@ -517,7 +520,7 @@ birth-rate-birds
 birth-rate-birds
 0
 5
-2.0
+4.0
 .01
 1
 NIL
@@ -605,7 +608,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-3.0
+1.1
 0.01
 1
 NIL
@@ -759,7 +762,7 @@ habitat-patch-size
 habitat-patch-size
 1
 100
-29.0
+9.0
 1
 1
 NIL
@@ -801,9 +804,9 @@ SLIDER
 Deforestation-at-time
 Deforestation-at-time
 0
-400
-300.0
-1
+500
+200.0
+100
 1
 NIL
 HORIZONTAL
@@ -817,11 +820,22 @@ end-time
 end-time
 0
 2000
-1600.0
+1500.0
 100
 1
 NIL
 HORIZONTAL
+
+SWITCH
+240
+570
+492
+603
+Migration0-at-deforestation
+Migration0-at-deforestation
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1226,8 +1240,14 @@ NetLogo 6.2.0
     <enumeratedValueSet variable="Deforestation-at-time">
       <value value="200"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1500"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="NoSelection_pf06_hpf3-59_dd1-3" repetitions="5" runMetricsEveryStep="false">
@@ -1277,8 +1297,14 @@ NetLogo 6.2.0
     <enumeratedValueSet variable="Deforestation-at-time">
       <value value="200"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1500"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="Hierarchical_pf06_hpf3-59_dd1-3" repetitions="5" runMetricsEveryStep="false">
@@ -1328,11 +1354,17 @@ NetLogo 6.2.0
     <enumeratedValueSet variable="Deforestation-at-time">
       <value value="200"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1500"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="false"/>
+    </enumeratedValueSet>
   </experiment>
-  <experiment name="BirthSelection_pf06_hpf3-59_dd1-3_lambda2" repetitions="5" runMetricsEveryStep="false">
+  <experiment name="NoHiBi_pf06_hpf3-61_dd1-3_lambda2_Migrat" repetitions="10" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <metric>birds-at-deforestation</metric>
@@ -1359,6 +1391,8 @@ NetLogo 6.2.0
       <value value="0.001"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+      <value value="&quot;Hierarchical&quot;"/>
       <value value="&quot;BirthSelection&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="habitat-patch-size">
@@ -1384,6 +1418,9 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="NoSelection_pf06_hpf3-59_dd1-3_lambda2" repetitions="5" runMetricsEveryStep="false">
@@ -1438,6 +1475,9 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="true"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="NoHiBi_pf00_hpf3_dd1-3_lambda1.7-4" repetitions="5" runMetricsEveryStep="false">
@@ -1548,6 +1588,9 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="true"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
