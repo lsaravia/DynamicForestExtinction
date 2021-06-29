@@ -1,7 +1,11 @@
 breed [birds bird]        ; living birds
+breed [observers observer]    ; virtual observer
 
 birds-own [ species]
-patches-own [ degraded ]
+patches-own [ degraded
+              cluster
+              cluster_no
+]
 
 globals [ total-patches
           gr-birds             ; Probability of growth
@@ -21,7 +25,10 @@ to setup-ini
   clear-all
   set total-patches count patches
   set-default-shape birds "circle"
-  ask patches [ set degraded false ]
+  ask patches [
+    set degraded false
+    set cluster nobody
+  ]
 end
 
 ;; Sets a random population of patches, if initial-population=1 set 1 individual in one edge at random to allow migration
@@ -299,6 +306,9 @@ to regular-deforestation
 
   let n world-width * world-height * h / (p * p )          ; Number of patches
   let prow int sqrt n                                      ; Number of rows of patches
+  if prow = 0 [
+    Print "error number of rows 0, make patch size smaller!"
+    stop ]
   let pos ( world-width -  p * prow ) / prow               ; position of the edge of the patch and distance between patches
   ;print (word "Number of patches: " n " Number per row: "  prow  " Position: " pos " Side of patch: " p)
 
@@ -312,8 +322,8 @@ to regular-deforestation
     let xx  x mod prow + 1
     let yy  int ( x / prow ) + 1
 
-    let coordx  ( x mod prow ) * pcenter
-    let coordy  ( int ( x / prow )  ) * pcenter
+    let coordx  ( x mod prow ) * pcenter + (pos / 2)
+    let coordy  ( int ( x / prow )  ) * pcenter + (pos / 2)
 
     ;print (word "coord y: "  coordy  " coord x: " coordx)
     ask patch coordx coordy [
@@ -327,74 +337,41 @@ to regular-deforestation
         set pcolor magenta
         ask birds-here [die]
       ]
-
   correct-deforestation degraded-patches
-
+  find-clusters
+  let numcluster max [cluster_no] of patches
+  let nondegraded  count patches with [ not degraded ]
+  set habitat-patch-size int  sqrt ( nondegraded / numcluster ) - 1
 end
 
 ;
 ; correct deforestation
 ;
 to correct-deforestation [degraded-p]
-  let num-degraded count patches with [degraded ] - degraded-p
-  if num-degraded > 0 [
-    let edge-degraded patches with [ degraded and any? neighbors with [not degraded] ]
-    ask up-to-n-of num-degraded edge-degraded [
-      set degraded false
-      set pcolor black
-    ]
-  ]
-  if num-degraded < 0 [
-    let edge-degraded patches with [ not degraded and any? neighbors with [degraded] ]
-    ask up-to-n-of ( abs num-degraded ) edge-degraded [
-      set degraded true
-      set pcolor magenta
-    ]
-
-
-  ]
-
-end
-
-to make-cluster
-  let degraded-patches prob-frag * world-width * world-height  ; number of degraded patches
-  let h 1 - prob-frag                                      ; Propotion of habitat
-  let p habitat-patch-size + 1                         ; Side of the patch
-
-  let n world-width * world-height * h / (p * p )          ; Number of patches
-  let prow int sqrt n                                      ; Number of rows of patches
-  let pos ( world-width -  p * prow ) / prow               ; position of the edge of the patch and distance between patches
-
-  let nearby moore-offsets habitat-patch-size true
-
-  ask patches [ set degraded true  ]
-
   loop [
-    let cluster [patches at-points nearby ] of one-of patches with [degraded]
-    let neigh patch-set [ neighbors ] of cluster
-    let border neigh with [not member? self cluster]
-    let expneigh patch-set [ patches in-radius ( pos ) ] of border
-
-    if all? expneigh [ degraded ] [
-      ask cluster [
-        set degraded false
-        set pcolor brown
-
-      ]
-    ]
-    let num-degraded count patches with [ degraded ]
-    print (word "num-degraded:  " num-degraded)
-    if num-degraded <= degraded-patches [
-      ask patches with [degraded ]
-      [
-        set pcolor magenta
-        ask birds-here [die]
-      ]
+    let num-degraded count patches with [degraded] - degraded-p
+    let dif-h ( abs num-degraded ) / total-patches
+    if dif-h < 0.01 [
+      ;set habitat-patch-size  int ( sqrt  count patches with [ not degraded] )
       stop
     ]
-
+    ;show (word "num-degraded: " num-degraded  " Dif-h: " dif-h)
+    if num-degraded  > 0 [
+      let edge-degraded patches with [ degraded and any? neighbors with [not degraded] ]
+      ;print word "edge-degraded: " edge-degraded
+      ask up-to-n-of num-degraded edge-degraded [
+        set degraded false
+        set pcolor black
+      ]
+    ]
+    if num-degraded < 0 [
+      let edge-degraded patches with [ not degraded and any? neighbors with [degraded] ]
+      ask up-to-n-of ( abs num-degraded ) edge-degraded [
+        set degraded true
+        set pcolor magenta
+      ]
+    ]
   ]
-
 end
 
 to block-deforestation
@@ -433,15 +410,87 @@ to-report moore-offsets [n include-center?]
     [ report result ]
     [ report remove [0 0] result ]
 end
+
+;;
+;; Detect patches "clusters" and put numbers on them
+;;
+
+to find-clusters
+  loop [
+    ;; pick a random patch that isn't in a cluster yet
+    let seed one-of patches with [cluster = nobody and ( not degraded )]
+    ;; if we can't find one, then we're done!
+    if seed = nobody
+    [
+      show-clusters
+      stop
+    ]
+    ;; otherwise, make the patch the "leader" of a new cluster
+    ;; by assigning itself to its own cluster, then call
+    ;; grow-cluster to find the rest of the cluster
+    ask seed
+    [ set cluster self
+      grow-cluster ]
+  ]
+  display
+end
+
+to grow-cluster  ;; patch procedure
+  ask neighbors with [(cluster = nobody) and
+    (pcolor = [pcolor] of myself)]
+  [ set cluster [cluster] of myself
+    grow-cluster ]
+end
+
+;; once all the clusters have been found, this is called
+;; to put numeric labels on them so the user can see
+;; that the clusters were identified correctly
+to show-clusters
+  let counter 0
+  loop
+  [ ;; pick a random patch we haven't labeled yet
+    let p one-of patches with [cluster_no = 0 and not degraded]
+    if p = nobody
+      [ stop ]
+    ;; give all patches in the chosen patch's cluster
+    ;; the same label
+    ask p
+    [ ask patches with [cluster = [cluster] of myself]
+      [ set cluster_no counter ] ]
+    set counter counter + 1 ]
+end
+
+
+to-report mean-free-path
+
+  ;take random positions inside habitat patches
+  ; and calculate the distance to the border
+  let non-degraded-patches patches with [ not degraded ]
+  print word "Number of non-degraded patches " non-degraded-patches
+  ask n-of ( 0.1 * count non-degraded-patches ) non-degraded-patches [
+    sprout-observers 1 [ set color black ]
+  ]
+  let degraded-patches patches with [ degraded]
+  let distance-to-degraded  []
+  ask observers [
+    let disdeg distance ( min-one-of degraded-patches [ distance myself ] ) ; This is very time consuming using in-radius would be more efficient
+    ;print word "Distance to degraded: " disdeg
+    set distance-to-degraded lput  disdeg  distance-to-degraded
+  ]
+  ;print word "Distance to degraded: " distance-to-degraded
+  report mean distance-to-degraded
+
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 230
 10
-747
-528
+738
+519
 -1
 -1
-5.1
+2.5
 1
 10
 1
@@ -452,9 +501,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-99
+199
 0
-99
+199
 1
 1
 1
@@ -520,7 +569,7 @@ birth-rate-birds
 birth-rate-birds
 0
 5
-4.0
+2.0
 .01
 1
 NIL
@@ -592,8 +641,8 @@ SLIDER
 migration-rate-birds
 migration-rate-birds
 0
-5
-0.001
+1
+0.0
 0.0001
 1
 NIL
@@ -608,7 +657,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-1.1
+5.0
 0.01
 1
 NIL
@@ -690,7 +739,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-2
+1
 
 SWITCH
 110
@@ -761,8 +810,8 @@ SLIDER
 habitat-patch-size
 habitat-patch-size
 1
-100
-9.0
+200
+4.0
 1
 1
 NIL
@@ -804,8 +853,8 @@ SLIDER
 Deforestation-at-time
 Deforestation-at-time
 0
-500
-200.0
+600
+100.0
 100
 1
 NIL
@@ -820,7 +869,7 @@ end-time
 end-time
 0
 2000
-1500.0
+1600.0
 100
 1
 NIL
@@ -833,7 +882,7 @@ SWITCH
 603
 Migration0-at-deforestation
 Migration0-at-deforestation
-1
+0
 1
 -1000
 
@@ -1585,6 +1634,190 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="end-time">
       <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoHiBi_pf06_hpf3-61_dd1-3_lambda2_NoMigrat" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+      <value value="&quot;Hierarchical&quot;"/>
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoHiBi_pf06_hpf3-61_dd1-3_lambda4_Migrat" repetitions="15" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+      <value value="&quot;Hierarchical&quot;"/>
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="29"/>
+      <value value="61"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="false"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoHiBi_200_pf06_hpf3-61_dd1-3_lambda2_NoMigrat" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="world-width">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="world-height">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+      <value value="&quot;Hierarchical&quot;"/>
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+      <value value="9"/>
+      <value value="30"/>
+      <value value="62"/>
+      <value value="125"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1900"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>
