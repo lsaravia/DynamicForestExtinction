@@ -80,7 +80,10 @@ end
 
 to go
   if deforestation-at-time != 0  and ticks = deforestation-at-time [
-    regular-deforestation
+    (ifelse deforestation-type = "regular" [ regular-deforestation ]
+      deforestation-type = "random block"  [ block-deforestation]
+      deforestation-type = "random"        [ random-deforestation ]
+    )
     set birds-at-deforestation count birds
     if migration0-at-deforestation [
       set migration-rate-birds 0
@@ -122,7 +125,7 @@ to go
 
   tick
   ;if video [
-        ;vid:record-interface
+  ;      ;vid:record-interface
   ;      vid:record-view
   ;]
 
@@ -281,7 +284,7 @@ to-report calc-number-of-species
   ;;count birds with [species = i]]
 end
 
-to fragmentation
+to random-deforestation
 
   ;let width (world-width - 1) * prob-frag / 2
   ;print (word "width " width)
@@ -600,9 +603,9 @@ SLIDER
 initial-population
 initial-population
 0
-2000
+20000
 0.0
-1
+100
 1
 NIL
 HORIZONTAL
@@ -642,7 +645,7 @@ migration-rate-birds
 migration-rate-birds
 0
 1
-0.0
+1.0E-4
 0.0001
 1
 NIL
@@ -657,7 +660,7 @@ birds-dispersal-distance
 birds-dispersal-distance
 1.01
 10
-5.0
+3.0
 0.01
 1
 NIL
@@ -705,7 +708,7 @@ BUTTON
 212
 483
 Random Deforestation
-Fragmentation
+random-deforestation
 NIL
 1
 T
@@ -811,7 +814,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-4.0
+9.0
 1
 1
 NIL
@@ -869,7 +872,7 @@ end-time
 end-time
 0
 2000
-1600.0
+600.0
 100
 1
 NIL
@@ -885,6 +888,16 @@ Migration0-at-deforestation
 0
 1
 -1000
+
+CHOOSER
+530
+575
+687
+620
+deforestation-type
+deforestation-type
+"random" "random block" "regular"
+2
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1824,6 +1837,70 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="Migration0-at-deforestation">
       <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="NoHiBi_pf00_hpf3_dd1-3_lambda1.1-4" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>birds-at-deforestation</metric>
+    <metric>calc-number-of-species</metric>
+    <metric>calc-shannon-diversity</metric>
+    <metric>count birds</metric>
+    <enumeratedValueSet variable="world-width">
+      <value value="99"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="world-height">
+      <value value="99"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="1.1"/>
+      <value value="1.5"/>
+      <value value="1.7"/>
+      <value value="2"/>
+      <value value="3"/>
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="1.1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+      <value value="&quot;Hierarchical&quot;"/>
+      <value value="&quot;BirthSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

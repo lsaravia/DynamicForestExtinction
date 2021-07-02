@@ -223,6 +223,8 @@ mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3
 
 ## Not fragmented communities Lambda = 1.7 - 4
 
+* 100x100 world 
+
 ```{r SLOSS_notfrag_simulations}
 require(tidyverse)
 
@@ -231,6 +233,10 @@ source("R/functions.r")
 # Not fragmented communities = habitat_patch_size = 100
 #
 mdl <- read_netlogo_simul("Simulations/NoHiBi_pf00_hpf3_dd1-3_lambda1.7-4.csv") %>% mutate(habitat_patch_size=100)
+
+# New Simulations 
+#
+mdl <- read_netlogo_simul("Simulations/NoHiBi_pf00_hpf3_dd1-3_lambda1.1-4.csv") %>% mutate(habitat_patch_size=100)
 
 sloss_sim <- bind_rows(sloss_sim,mdl)
 
@@ -246,14 +252,18 @@ saveRDS(sloss_sim, "Simulations/sloss_sim.rds")
 names(mdl)
 #
 # Plot for neutral communities 
+# I filter birth_rate_birds 1.1 because these communities survive only by migration
 #
-mdl1 <- mdl %>% group_by(birds_dispersal_distance, birth_rate_birds,birds_behavior) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(birth_rate_birds = factor(birth_rate_birds)  ) 
+mdl1 <- mdl %>% filter(birth_rate_birds!=1.1) %>% group_by(birds_dispersal_distance, birth_rate_birds,birds_behavior) %>% summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(birth_rate_birds = factor(birth_rate_birds)  ) 
 
-mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=birth_rate_birds)) + geom_point() + scale_color_viridis_d() + facet_wrap( ~birds_behavior )  + theme_bw()
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_number_of_species,color=birth_rate_birds)) + geom_point() + geom_line() + scale_color_viridis_d(name="lambda") + facet_wrap( ~birds_behavior )  + theme_bw() + ylab("Number of species") + xlab("Dispersal Distance") 
+ggsave("Figures/Species_NoFrag_Dispersal_Lambda.png",width=8,height=6,units="in",dpi=600)
+
 
 mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=calc_shannon_diversity,color=birth_rate_birds)) + geom_point() + scale_color_viridis_d() + facet_wrap( ~birds_behavior ) + theme_bw()
 
-mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=count_birds,color=birth_rate_birds)) + geom_point() + scale_color_viridis_d() + facet_wrap( ~birds_behavior ) + theme_bw()
+mdl1 %>% ggplot(aes(x=birds_dispersal_distance,y=count_birds,color=birth_rate_birds)) + geom_point() + geom_line() + scale_color_viridis_d(name="lambda") + facet_wrap( ~birds_behavior )  + theme_bw() + ylab("Number of indiv.") + xlab("Dispersal Distance") 
+ggsave("Figures/Indiv_NoFrag_Dispersal_Lambda.png",width=8,height=6,units="in",dpi=600)
 
 mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3) %>%  mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=birth_rate_birds,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + scale_color_viridis_d() + theme_bw()+ facet_wrap( ~birds_behavior )
 
@@ -280,7 +290,10 @@ save.image()
 #
 mdl <- read_netlogo_simul("Simulations/NoHiBi_200_pf06_hpf3-61_dd1-3_lambda2_NoMigrat.csv")
 sloss_sim <- bind_rows(sloss_sim,mdl)
+sloss_sim <- sloss_sim %>% mutate( world_width=if_else(is.na(world_width),100,world_width))
+sloss_sim <- sloss_sim %>% mutate( world_width=if_else(world_width==99,100,world_width))
 
+saveRDS(sloss_sim, "Simulations/sloss_sim.rds")
 
 ```
 
@@ -292,12 +305,17 @@ require(tidyverse)
 
 source("R/functions.r")
 
+
 #mdl1 <- sloss_sim %>% filter(Migration0_at_deforestation | (birth_rate_birds==2 & habitat_patch_size==100)) %>%  
-unique(sloss_sim$Migration0_at_deforestation)
-mdl1 <- sloss_sim %>% filter(Migration0_at_deforestation ) %>%  
+sloss_sim %>% distinct(Migration0_at_deforestation, world_width)
+
+#
+# Count number of simulations
+#
+mdl1 <- sloss_sim %>% filter(Migration0_at_deforestation, world_width==100 ) %>%  
   count(habitat_patch_size,birds_dispersal_distance, birth_rate_birds,birds_behavior) 
 
-mdl1 <- sloss_sim %>% filter(Migration0_at_deforestation ) %>%  
+mdl1 <- sloss_sim %>% filter(Migration0_at_deforestation, world_width==100 ) %>%  
   group_by(habitat_patch_size,birds_dispersal_distance, birth_rate_birds,birds_behavior) %>%
   summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(birth_rate_birds = factor(birth_rate_birds)  )
 
@@ -317,28 +335,13 @@ ggsave("Figures/Shannon_PatchSize_Dispersal_NoMigration.png",width=8,height=6,un
 mdl1 <- sloss_sim %>% filter(!Migration0_at_deforestation ) %>%  
   count(habitat_patch_size,birds_dispersal_distance, birth_rate_birds,birds_behavior)
 
-# Plot with SD 
-#
-mdl1 <- sloss_sim %>% filter(!Migration0_at_deforestation & habitat_patch_size!=100 & birth_rate_birds == 2 ) %>%  
-  group_by(habitat_patch_size,birds_dispersal_distance, birth_rate_birds,birds_behavior) %>%
-  summarise(across(birds_at_deforestation:count_birds,list(mean=mean=sd))) %>% mutate(birth_rate_birds = factor(birth_rate_birds)  )
-
-mdl1 %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance),lb=calc_number_of_species_mean - calc_number_of_species_sd, ub=calc_number_of_species_mean + calc_number_of_species_sd,) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species_mean,color=birds_dispersal_distance)) + geom_point(position=position_dodge(width=2)) +  
-  geom_errorbar(
-        aes(ymin = lb, ymax = ub),
-        width = 0.1,
-        linetype = "dotted",
-        position=position_dodge(width=2)) +
-  scale_color_viridis_d(name="Dispersal") + theme_bw()+ facet_wrap( ~birds_behavior ) + ylab("Number of species") + xlab("Patch Size") + ggtitle("Lambda=2 Degraded 60% Migration")
-
 #
 # Plot without SD
 #
-mdl1 <- sloss_sim %>% filter(!Migration0_at_deforestation & habitat_patch_size!=100 & birth_rate_birds == 2 ) %>%  
+mdl1 <- sloss_sim %>% filter(!Migration0_at_deforestation & habitat_patch_size!=100 & birth_rate_birds == 2, world_width==100 ) %>%  
   group_by(habitat_patch_size,birds_dispersal_distance, birth_rate_birds,birds_behavior) %>%
   summarise(across(birds_at_deforestation:count_birds,mean)) %>% mutate(birth_rate_birds = factor(birth_rate_birds)  )
 
-#mdl1 %>% filter(birds_dispersal_distance == 1.1 || birds_dispersal_distance == 3 || birds_dispersal_distance == 1.5) %>%  
 mdl1 %>% mutate(birds_dispersal_distance=factor(birds_dispersal_distance)) %>% ggplot(aes(x=habitat_patch_size,y=calc_number_of_species,color=birds_dispersal_distance)) + geom_point() + geom_line() + scale_color_viridis_d(name="Dispersal") + theme_bw()+ facet_wrap( ~birds_behavior ) + ylab("Number of species") + xlab("Patch Size") + ggtitle("Lambda=2 Degraded 60% Migration")
 
 ggsave("Figures/Species_PatchSize_Dispersal_Migration.png",width=8,height=6,units="in",dpi=600)
@@ -376,63 +379,4 @@ ggsave("Figures/Species_lambda2-4_PatchSize_Dispersal_Hierarchical.png",width=8,
 ```
 
 
-
-```{r gen_fit_lhs, echo=FALSE, tidy=TRUE, message=FALSE, warning=FALSE, eval=FALSE}
-
-nl@experiment <- experiment(expname="world201_Beta30_50_viaje0_3_trabajo4_8",
-                            outpath=outpath,
-                            repetition=1,
-                            tickmetrics="true",
-                            idsetup="setup",
-                            idgo="go",
-                            runtime=365,
-                            metrics=c("count personas", "nro-hospitalizados", "nro-recuperados", "nro-fallecidos" ),
-                              variables = list("Horas-en-viaje" = list(min=0, max=3, qfun="qunif"),
-                                               "beta" = list(min=0.30, max=0.50, qfun="qunif"),
-                                               "proporcion-hospitalizados"= list(min=0.20, max=0.45,qfun="qunif"),
-                                               "Horas-en-trabajo"=list(min=4, max=8, qfun="qunif")
-                                               ),                            
-                              constants = list("world-width" = 201,
-                                               "world-height" = 201,
-                                               "infectados-iniciales" = 10,
-                                               "max-personas-por-casa" = 10,
-                                               "max-personas-por-trabajo" = 100,
-                                               "periodo-latencia"=3.6,
-                                               "Proporcion-asintomaticos"=0.43,
-                                               "periodo-presintomatico"=1.5,
-                                               "periodo-asintomatico"= 7.0,
-                                               "periodo-hospitalizacion-fallecido" = 13.2,
-                                               "periodo-hospitalizacion-recuperado" = 15,
-                                               "Proporcion-fallecimiento-saturada"= 0.5,
-                                               "Fallecido-sin-hospitalizacion"=0.18,
-                                               "Proporcion-fallecimiento-hospitalizados"=0.09,
-                                               "periodo-pre-hospitalizacion"= 2.5,
-                                               "capacidad-de-camas"= 10000
-                                             ))
-
-#
-# Set a latin hypercubic design 
-#
-nl@simdesign <- simdesign_lhs(nl=nl,
-                               samples=300,
-                               nseeds=4,
-                               precision=2)
-
-# run in Paralell 
-#
-require(future)
-plan(multisession)
-require(tictoc)
-tic()
-results <- run_nl_all(nl,split = 10)
-toc()
-plan(sequential)
-names(results)
-
-#
-# Write the output
-#
-setsim(nl, "simoutput") <- results 
-write_simoutput(nl)
-```
 

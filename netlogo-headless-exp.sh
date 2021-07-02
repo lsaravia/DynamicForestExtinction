@@ -2,7 +2,7 @@
 
 ~/NetLogo/netlogo-headless.sh \
   --model MultipleContactNeutralMigrat.nlogo \
-  --experiment NoHiBi_200_pf06_hpf3-61_dd1-3_lambda2_NoMigrat \
+  --experiment NoHiBi_pf00_hpf3_dd1-3_lambda1.1-4 \
   --threads 48 \
-  --table Simulations/NoHiBi_200_pf06_hpf3-61_dd1-3_lambda2_NoMigrat.csv
+  --table Simulations/NoHiBi_pf00_hpf3_dd1-3_lambda1.1-4.csv
 
