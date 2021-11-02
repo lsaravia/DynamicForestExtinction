@@ -463,26 +463,48 @@ to show-clusters
     set counter counter + 1 ]
 end
 
-
+; Calculate the shortest distance from a random point to the border of the patch
+; for non-degraded and degraded patches
+;
 to-report mean-free-path
 
-  ;take random positions inside habitat patches
+  ; take random positions inside non-degraded habitat patches
   ; and calculate the distance to the border
   let non-degraded-patches patches with [ not degraded ]
-  print word "Number of non-degraded patches " non-degraded-patches
+  ;print word "Number of non-degraded patches " non-degraded-patches
   ask n-of ( 0.1 * count non-degraded-patches ) non-degraded-patches [
     sprout-observers 1 [ set color black ]
   ]
   let degraded-patches patches with [ degraded]
   let distance-to-degraded  []
   ask observers [
-    let disdeg distance ( min-one-of degraded-patches [ distance myself ] ) ; This is very time consuming using in-radius would be more efficient
+    let disdeg distance ( min-one-of degraded-patches [ distance myself ] ) ; This is more efficient than using in-radius
     ;print word "Distance to degraded: " disdeg
     set distance-to-degraded lput  disdeg  distance-to-degraded
   ]
   ;print word "Distance to degraded: " distance-to-degraded
-  report mean distance-to-degraded
+  let mfp-list []
+  set mfp-list lput precision mean distance-to-degraded 3 mfp-list
+  ask observers [die]
 
+  ;
+  ; Calculate the mean-free-path of degraded habitat
+
+  set degraded-patches patches with [ degraded ]
+  ;print word "Number of degraded patches " degraded-patches
+  ask n-of ( 0.1 * count degraded-patches ) degraded-patches [
+    sprout-observers 1 [ set color black ]
+  ]
+  set non-degraded-patches patches with [ not degraded]
+  set distance-to-degraded  []
+  ask observers [
+    let disdeg distance ( min-one-of non-degraded-patches [ distance myself ] ) ; This is more efficient than using in-radius
+    ;print word "Distance to degraded: " disdeg
+    set distance-to-degraded lput  disdeg  distance-to-degraded
+  ]
+  ask observers [die]
+  set mfp-list lput precision mean distance-to-degraded 3 mfp-list
+  report mfp-list
 
 end
 @#$#@#$#@
@@ -645,7 +667,7 @@ migration-rate-birds
 migration-rate-birds
 0
 1
-1.0E-4
+0.0
 0.0001
 1
 NIL
@@ -814,7 +836,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-9.0
+10.0
 1
 1
 NIL
