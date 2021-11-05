@@ -1,4 +1,4 @@
-# Dynamic forest extinction models 
+# Dynamic forest extinction and fragmentation models 
 
 * **ContactProcess2SpeciesCompetition.nlogo** A two-species contact model the species can have different birth death rates and dispersal distances. 
  Dispersal is implemented with a power-law distribution. The model could be simulated here: 
@@ -16,7 +16,7 @@
 	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/ContactProcessBirdsInsideForest.nlogo>
 
 
-* **MultipleContactNeutralMigrat.nlogo** A multiple species neutral/hierarchical model described in [1]. The model has three behaviors
+* **MultipleContactNeutralMigrat.nlogo** A multiple species neutral/hierarchical model described in [1]. The model has three behaviours
 
 	1. A completely neutral model, where species disperse and if the site is occupied the individual dies
 	2. A completely neutral model, where species disperse to empty sites if they are available 
