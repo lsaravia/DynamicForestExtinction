@@ -1,5 +1,8 @@
 # Dynamic forest extinction and fragmentation models 
 
+[![DOI](https://zenodo.org/badge/364956671.svg)](https://zenodo.org/badge/latestdoi/364956671)
+
+
 * **ContactProcess2SpeciesCompetition.nlogo** A two-species contact model the species can have different birth death rates and dispersal distances. 
  Dispersal is implemented with a power-law distribution. The model could be simulated here: 
  
