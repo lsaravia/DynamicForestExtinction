@@ -507,6 +507,11 @@ to-report mean-free-path
   report mfp-list
 
 end
+
+
+to-report efective-degraded-proportion
+  report count patches with [ degraded ] / total-patches
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 230
@@ -667,7 +672,7 @@ migration-rate-birds
 migration-rate-birds
 0
 1
-0.0
+1.0E-4
 0.0001
 1
 NIL
@@ -836,7 +841,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-10.0
+6.0
 1
 1
 NIL
@@ -865,7 +870,7 @@ MONITOR
 232
 660
 Efective degraded proportion
-count patches with [ degraded ] / total-patches
+efective-degraded-proportion
 5
 1
 11
@@ -907,7 +912,7 @@ SWITCH
 603
 Migration0-at-deforestation
 Migration0-at-deforestation
-0
+1
 1
 -1000
 
@@ -1920,6 +1925,56 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="end-time">
       <value value="1600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+    <enumeratedValueSet variable="birds-dispersal-distance">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="migration-rate-birds">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Migration0-at-deforestation">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="death-rate-birds">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-birds-species">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Deforestation-at-time">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="prob-frag">
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birth-rate-birds">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Video">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="end-time">
+      <value value="600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="birds-behavior">
+      <value value="&quot;NoSelection&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="habitat-patch-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="deforestation-type">
+      <value value="&quot;regular&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="replacement-rate">
       <value value="0.3"/>

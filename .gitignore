@@ -6,3 +6,4 @@
 .dropbox
 .httr-oauth
 *.sublime-*
+*.tmp.nlogo
