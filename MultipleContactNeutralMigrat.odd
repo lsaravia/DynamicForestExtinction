@@ -1,0 +1,46 @@
+## WHAT IS IT?
+
+This model is about the dynamics of multispecies communities and the influence of fragmentation.
+
+The model description below follows the ODD (Overview, Design concepts, Details) protocol for describing individual- and agent-based models (Grimm et al. 2006, 2010). The model was implemented in NetLogo (Wilensky, 1999), version 6.0.4.
+
+### Purpose
+
+The main purpose of the model is to understand how fragmentation influences the dynamics of multispecies communities.  By adjusting the arrangements of degraded habitat, the model serves as a practical tool to mimic the effects of fragmentation on different kinds of communities. One typical hypothesis is given an amount of degraded habitat which is the best spatial arrangement of protected habitat for protecting the highest number of species. With this model you can adjust the parameters of the following community procesess: migration, reproduction, survival, dispersal, competition, habitat selection. You can also change the amount of degraded habitat, the timing of degradation, and the spatial arrangement of degraded areas.
+
+## HOW IT WORKS
+
+### Entities, state variables and scales
+
+The model has two types of agents, pollinators and plants. Pollinators are the only mobile agents in the simulation, whereas plants are non-mobile. Pollinators and plants are associated with state variables determining their traits and behaviors. Pollinators are divided into species distinguished by a unique set of traits such as body size, eusociality, foraging distance, and niche (i.e., a subset of plants they interact with) and niche preferences. Plants can have varying numbers of flowers, which will determine their attractiveness to pollinators. The more flowers, the more attractive the plant will be to pollinators will be. There are seven habitats of which six each contain one plant species. A proportion f of patches contains plant species (with a single plant, but flower density can be varied). The remaining proportion of patches (1-f) are empty. Each patch which contains a plant corresponds to a single plant type indicated by a unique color. The world is set to wrap vertically and horizontally. The “netlogo world” consists of 1m x 1m grid cells (square patches) and the model landscape comprises 600 x 600 m.
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+The model was developed by Leonardo A. Saravia
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)

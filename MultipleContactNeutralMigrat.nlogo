@@ -324,9 +324,15 @@ to regular-deforestation
   foreach prange [ x ->
     let xx  x mod prow + 1
     let yy  int ( x / prow ) + 1
+;    Center the degraded patches so they don't touch the borders
+;
+;    let coordx  ( x mod prow ) * pcenter + (pos / 2)
+;    let coordy  ( int ( x / prow )  ) * pcenter + (pos / 2)
 
-    let coordx  ( x mod prow ) * pcenter + (pos / 2)
-    let coordy  ( int ( x / prow )  ) * pcenter + (pos / 2)
+;    Degraded patches at the left bottom borders allow immigration
+;
+    let coordx  ( x mod prow ) * pcenter
+    let coordy  ( int ( x / prow )  ) * pcenter
 
     ;print (word "coord y: "  coordy  " coord x: " coordx)
     ask patch coordx coordy [
@@ -672,7 +678,7 @@ migration-rate-birds
 migration-rate-birds
 0
 1
-1.0E-4
+0.0
 0.0001
 1
 NIL
@@ -841,7 +847,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-6.0
+9.0
 1
 1
 NIL
@@ -884,7 +890,7 @@ Deforestation-at-time
 Deforestation-at-time
 0
 600
-100.0
+200.0
 100
 1
 NIL
@@ -912,7 +918,7 @@ SWITCH
 603
 Migration0-at-deforestation
 Migration0-at-deforestation
-1
+0
 1
 -1000
 
@@ -929,7 +935,15 @@ deforestation-type
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This model is about the dynamics of multispecies communities and the influence of fragmentation.
+
+The model was developed by Leonardo A. Saravia
+ 
+The model description below follows the ODD (Overview, Design concepts, Details) protocol for describing individual- and agent-based models (Grimm et al. 2006, 2010). The model was implemented in NetLogo (Wilensky, 1999), version 6.0.4.
+
+### Purpose
+
+The main purpose of the model is to understand how fragmentation influences the dynamics of multispecies communities.  By adjusting the arrangements of degraded habitat, the model serves as a practical tool to mimic the effects of fragmentation on different kinds of communities. One typical hypothesis is given an amount of degraded habitat which is the best spatial arrangement of protected habitat for protecting the highest number of species. With this model you can adjust the parameters of the following community procesess: migration, reproduction, survival, dispersal, competition, habitat selection. You can also change the amount of degraded habitat, the timing of degradation, and the spatial arrangement of degraded areas.
 
 ## HOW IT WORKS
 
