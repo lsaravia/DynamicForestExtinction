@@ -1,7 +1,7 @@
-breed [birds bird]        ; living birds
+breed [birds bird]            ; birds represent a biological species not particularly birds
 breed [observers observer]    ; virtual observer
 
-birds-own [ species]
+birds-own [ species]          ; Species are identified by a number
 patches-own [ degraded
               cluster
               cluster_no
@@ -197,7 +197,7 @@ end
 
 ;;
 ;; Birds select a patch with a power law distance distribution if empty and not degraded site they reproduce
-;; they don't search for one available
+;; they don't search for empty and not degraded sites
 ;;
 to grow-birds-neutral-no-selection
   let rnd random-float 1
@@ -220,6 +220,10 @@ to grow-birds-neutral-no-selection
   ]
 end
 
+;;
+;; Birds select a patch with a power law distance distribution if empty or occupied by a species with number greater than the actual one,  and not degraded site they reproduce
+;; they don't search. Thus species with lower numbers replace species with higher numbers.
+;;
 to grow-birds-hierarchical
   ifelse random-float 1 > gr-birds
   [ die ]
@@ -299,8 +303,10 @@ to random-deforestation
 
 end
 
-; The habitat left has a regular patch distribution
-;
+;;
+;; The habitat is degraded with a regular patch distribution with side size given by `habitat-patch-size` + 1
+;; The amount of degraded habitat is given by prob-frag
+;;
 to regular-deforestation
 
   let degraded-patches prob-frag * world-width * world-height  ; number of degraded patches
@@ -354,7 +360,7 @@ to regular-deforestation
 end
 
 ;
-; correct deforestation
+; Some corrections are needed fot aproximating to the prob-frag amount of degraded habitat
 ;
 to correct-deforestation [degraded-p]
   loop [
@@ -383,6 +389,10 @@ to correct-deforestation [degraded-p]
   ]
 end
 
+;;
+;; Degrade the habitat using randomnly located squares with side size given by `habitat-patch-size` + 1
+;; The amount of degraded habitat is given by prob-frag
+;;
 to block-deforestation
 
   let degraded-patches prob-frag * world-width * world-height
@@ -421,7 +431,7 @@ to-report moore-offsets [n include-center?]
 end
 
 ;;
-;; Detect patches "clusters" and put numbers on them
+;; Detect "clusters" of non-degraded patches and put numbers on them
 ;;
 
 to find-clusters
@@ -637,7 +647,7 @@ initial-population
 initial-population
 0
 20000
-0.0
+100.0
 100
 1
 NIL
@@ -847,7 +857,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-9.0
+3.0
 1
 1
 NIL
@@ -941,41 +951,149 @@ The model was developed by Leonardo A. Saravia
  
 The model description below follows the ODD (Overview, Design concepts, Details) protocol for describing individual- and agent-based models (Grimm et al. 2006, 2010). The model was implemented in NetLogo (Wilensky, 1999), version 6.0.4.
 
-### Purpose
+# ODD
 
-The main purpose of the model is to understand how fragmentation influences the dynamics of multispecies communities.  By adjusting the arrangements of degraded habitat, the model serves as a practical tool to mimic the effects of fragmentation on different kinds of communities. One typical hypothesis is given an amount of degraded habitat which is the best spatial arrangement of protected habitat for protecting the highest number of species. With this model you can adjust the parameters of the following community procesess: migration, reproduction, survival, dispersal, competition, habitat selection. You can also change the amount of degraded habitat, the timing of degradation, and the spatial arrangement of degraded areas.
+## 1. Purpose and patterns
 
-## HOW IT WORKS
+The purpose of this model is to simulate the dynamics of multiple species occupying a landscape that undergoes habitat loss and fragmentation over time. The model allows exploring the effect of different habitat loss patterns, dispersal abilities, and competition mechanisms on species diversity and persistence. 
 
-(what rules the agents use to create the overall behavior of the model)
+Key output patterns examined are:
+- Species abundance distribution 
+- Species diversity (e.g. Shannon index)
+- Species occupancy and spatial distribution
+- Extinction dynamics
 
-## HOW TO USE IT
+## 2. Entities, state variables, and scales
 
-(how to use the model, including a description of each of the items in the Interface tab)
+The model contains the following entities:
 
-## THINGS TO NOTICE
+**Birds** - the main mobile agents representing individuals of different species. Characterized by the state variables:
+- *species* - identity number of the species (0 to max-birds-species)
+- *size* - visualization size of the agent  
+- *color* - visualization color scaled to the species identity
 
-(suggested things for the user to notice while running the model)
+**Patches** - the spatial units forming the landscape. Characterized by: 
+- *degraded* - Boolean indicating if the patch is degraded habitat or not
+- *cluster* - agentset identifying which habitat fragment the patch belongs to
+- *cluster_no* - patch cluster identity number  
 
-## THINGS TO TRY
+**Globals** - model parameters and global variables
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+The spatial extent comprises the entire NetLogo world, which can be configured as desired (default is 51 x 51 patches). One time step represents one generation of the birds. Simulations are run for a max time configured by `end-time`
 
-## EXTENDING THE MODEL
+## 3. Process overview and scheduling
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+The model proceeds in discrete time steps representing single generations. Within each time step, the following actions occur in order:
 
-## NETLOGO FEATURES
+1. Habitat loss event if the current time matches the configured loss time
+2. Calculation of model probabilities for reproduction, dispersal, and replacement
+3. Birds disperse stochastically based on assigned dispersal abilities and competition mechanisms
+4. Data collection and recording 
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+The habitat loss event degrades patches according to one of three specified spatial patterns. Dispersal follows either neutral dynamics or a hierarchical competition mechanism. State variables are updated asynchronously as dispersal moves birds across the landscape.
 
-## RELATED MODELS
+The scheduling pseudo-code is:
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+```
+Initialize landscape and bird populations
+  
+While time < end-time:
 
-## CREDITS AND REFERENCES
+  If time = habitat loss time
+    Degrade habitat patches 
+  
+  Calculate model probability parameters
+  
+  Ask patches:
+    Perform probabilistic migration of birds into patch if empty
+    
+  Ask birds:  
+    Hatch new bird in probability based on:
+      - neutral dispersal  
+      - hierarchy-based replacement of lower ranked species
+      
+    Die with configured probability
+  
+Collect data on model variables
+  
+Increment time step
+```
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+## 4. Design concepts
+
+**Basic principles** - The model explores two alternative hypotheses on how species divide resources: (1) neutral dynamics where species are functionally equivalent, vs (2) hierarchical competition where superior species can displace inferior ones.
+
+**Emergence** - The spatial distribution, diversity, and abundance patterns of species emerge from the probabilistic behaviors of reproduction, dispersal, migration, and competition between individual birds.
+
+**Adaptation** - Birds do not adapt. Their behaviors are fixed based on model configuration.
+
+**Objectives** - Birds aim to reproduce based on fixed probabilities. They do not have explicit fitness objectives.
+
+**Learning** - Birds do not learn.
+
+**Prediction** - Birds do not predict future conditions. 
+
+**Sensing** - Birds sense the occupancy of patches in their local dispersal neighborhood. With the hierarchical competition mode, they also sense the identity of other bird species present when dispersing.
+
+**Interaction** - Birds interact by competing for space. The neutral model has equal competitive ability. The hierarchy model allows species replacement according to rank order.
+
+**Stochasticity** - Stochasticity is implemented in multiple processes:
+- Initial population placement
+- Habitat loss pattern
+- Dispersal distance 
+- Reproduction
+- Migration
+- Species selection (with hierarchy)
+
+**Collectives** - Birds do not form collectives. Patches self-organize into habitat clusters.
+
+**Observation** - The following are recorded at each time step:
+- Species abundance distribution
+- Species diversity (Shannon index)
+- Number of species
+- Spatial distribution of birds 
+
+## 5. Initialization
+
+At initialization, the landscape is entirely suitable habitat. An initial number of birds are placed randomly across the landscape. Their species identity numbers are assigned randomly from 0 to the configured max unique species.
+
+If starting with 1 individual, it is placed randomly on one edge of the world to allow immigration.
+
+## 6. Input data
+
+The model does not use input data from external sources.
+
+## 7. Submodels
+
+**Habitat loss** - Habitat patches are degraded probabilistically according to one of three spatial patterns:
+1. Random loss placing magenta degraded patches randomly across the landscape.
+2. Regular loss generating a fragmented landscape with regular pattern of degraded patches. 
+3. Block loss using randomized squares of degraded patches.
+
+The total amount of degradation is set by the *prob-frag* parameter.
+
+**Dispersal** - Birds reproduce probabilistically based on fixed rates. Offspring disperse locally based on a power law distribution with an exponent chosen to match the mean dispersal distance set by the *birds-dispersal-distance* parameter. 
+
+With neutral dynamics, they settle in any empty non-degraded patches within dispersal range. With hierarchy, they also displace resident birds of lower rank species.
+
+**Migration** - Immigration from outside is implemented by spontaneous appearance of birds at patch edges with a fixed probability.
+
+**Data collection** - At each time step, the model records:
+
+- Species abundance distribution
+- Shannon diversity index
+- Number of unique species 
+- Spatial distribution of birds
+
+## 8. References
+
+Key references that influenced the model design:
+
+Hanski, I. (1998). Metapopulation dynamics. Nature, 396(6706), 41-49.
+
+Hubbell, S. P. (2001). The unified neutral theory of biodiversity and biogeography. Princeton University Press.
+
+Leibold, M. A., Holyoak, M., Mouquet, N., Amarasekare, P., Chase, J. M., Hoopes, M. F., ... & Gonzalez, A. (2004). The metacommunity concept: a framework for multi‐scale community ecology. Ecology letters, 7(7), 601-613.
 @#$#@#$#@
 default
 true
@@ -1291,7 +1409,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.3.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
