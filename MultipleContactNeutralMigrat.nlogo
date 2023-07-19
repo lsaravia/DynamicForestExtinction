@@ -16,7 +16,7 @@ globals [ total-patches
 ]
 
 extensions [
-  table
+  ;table
   ;profiler
   ;vid
 ]
@@ -480,7 +480,7 @@ to show-clusters
 end
 
 ; Calculate the shortest distance from a random point to the border of the patch
-; for non-degraded and degraded patches
+; from non-degraded to degraded and from degraded to non-degraded patches
 ;
 to-report mean-free-path
 
@@ -492,6 +492,9 @@ to-report mean-free-path
     sprout-observers 1 [ set color black ]
   ]
   let degraded-patches patches with [ degraded]
+  if degraded-patches = nobody
+      [ report list 0 0 ]
+
   let distance-to-degraded  []
   ask observers [
     let disdeg distance ( min-one-of degraded-patches [ distance myself ] ) ; This is more efficient than using in-radius
@@ -506,27 +509,60 @@ to-report mean-free-path
   ;
   ; Calculate the mean-free-path of degraded habitat
 
-  set degraded-patches patches with [ degraded ]
-  ;print word "Number of degraded patches " degraded-patches
+  ;set degraded-patches patches with [ degraded ]
+  ; print word "Number of degraded patches " degraded-patches
   ask n-of ( 0.1 * count degraded-patches ) degraded-patches [
     sprout-observers 1 [ set color black ]
   ]
-  set non-degraded-patches patches with [ not degraded]
+  ;set non-degraded-patches patches with [ not degraded]
   set distance-to-degraded  []
   ask observers [
     let disdeg distance ( min-one-of non-degraded-patches [ distance myself ] ) ; This is more efficient than using in-radius
-    ;print word "Distance to degraded: " disdeg
+                                                                                ;print word "Distance to degraded: " disdeg
     set distance-to-degraded lput  disdeg  distance-to-degraded
   ]
+  ;print word "Distance to non-degraded: " distance-to-degraded
   ask observers [die]
   set mfp-list lput precision mean distance-to-degraded 3 mfp-list
+
   report mfp-list
 
 end
 
+; Exact mean-free-path a bit slower than the previous
+;
+to-report exact-mean-free-path
+  let non-degraded-patches patches with [ not degraded ]
+  let degraded-patches patches with [ degraded ]
+
+  if degraded-patches = nobody [ report list 0 0 ]
+
+  let distance-to-degraded map [p -> [distance (min-one-of degraded-patches [distance myself])] of p] sort non-degraded-patches
+  let mfp-list (list precision mean distance-to-degraded 3)
+
+  set distance-to-degraded map [p -> [distance (min-one-of non-degraded-patches [distance myself])] of p] sort degraded-patches
+  set mfp-list lput precision mean distance-to-degraded 3 mfp-list
+
+  report mfp-list
+end
 
 to-report efective-degraded-proportion
   report count patches with [ degraded ] / total-patches
+end
+
+to-report rank-abundance
+  let species-list [species] of birds
+
+  let unique-species remove-duplicates species-list
+  ;print word "unique-species: " unique-species
+
+  let species-counts map [s -> count birds with [species = s ]] unique-species
+  ;print word "species-counts : " species-counts
+
+  let rank-abundance-list sort-by > species-counts
+
+
+  report rank-abundance-list
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -604,7 +640,7 @@ true
 false
 "" "set-plot-y-range 0 1\nset-plot-x-range 0 max-birds-species"
 PENS
-"default" 1.0 1 -16777216 true "" "plot-pen-reset\nlet counts map count table:values table:group-agents birds [ species ]\nforeach (reverse sort counts) plot"
+"default" 1.0 1 -16777216 true "" "plot-pen-reset\nlet counts rank-abundance\nforeach counts plot"
 
 SLIDER
 20
@@ -688,7 +724,7 @@ migration-rate-birds
 migration-rate-birds
 0
 1
-0.0
+1.0E-4
 0.0001
 1
 NIL
@@ -785,7 +821,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-1
+2
 
 SWITCH
 110
@@ -857,7 +893,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-3.0
+62.0
 1
 1
 NIL
@@ -940,7 +976,7 @@ CHOOSER
 deforestation-type
 deforestation-type
 "random" "random block" "regular"
-2
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
