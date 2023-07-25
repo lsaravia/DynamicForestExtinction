@@ -3,8 +3,7 @@ breed [observers observer]    ; virtual observer
 
 birds-own [ species]          ; Species are identified by a number
 patches-own [ degraded
-              cluster
-              cluster_no
+              cluster-label
 ]
 
 globals [ total-patches
@@ -27,7 +26,7 @@ to setup-ini
   set-default-shape birds "circle"
   ask patches [
     set degraded false
-    set cluster nobody
+    set cluster-label 0
   ]
 end
 
@@ -326,7 +325,10 @@ to regular-deforestation
   ask patches [ set degraded true ]
   let nearby moore-offsets habitat-patch-size true
 
-  let prange range (  n - 1 )
+  let prange range  n
+  let shiftx 0
+  let shifty 0
+
   foreach prange [ x ->
     let xx  x mod prow + 1
     let yy  int ( x / prow ) + 1
@@ -337,13 +339,17 @@ to regular-deforestation
 
 ;    Degraded patches at the left bottom borders allow immigration
 ;
-    let coordx  ( x mod prow ) * pcenter
-    let coordy  ( int ( x / prow )  ) * pcenter
+    let coordx  ( x mod prow ) * pcenter ;- 1
+    let coordy  ( int ( x / prow )  ) * pcenter ;- 1
+;    print (word "coord y: "  coordy  " coord x: " coordx)
 
-    ;print (word "coord y: "  coordy  " coord x: " coordx)
-    ask patch coordx coordy [
-      ask patches at-points nearby [
-        set degraded false
+    if coordx >= min-pxcor and coordy >= min-pycor and coordx <= max-pxcor and coordy <= max-pycor  [
+    print (word "coord y: "  coordy  " coord x: " coordx)
+
+      ask patch coordx coordy [
+        ask patches at-points nearby [
+          set degraded false
+        ]
       ]
     ]
   ]
@@ -353,10 +359,10 @@ to regular-deforestation
         ask birds-here [die]
       ]
   correct-deforestation degraded-patches
-  find-clusters
-  let numcluster max [cluster_no] of patches
-  let nondegraded  count patches with [ not degraded ]
-  set habitat-patch-size int  sqrt ( nondegraded / numcluster ) - 1
+  ;find-clusters
+  ;let numcluster max [cluster_no] of patches
+  ;let nondegraded  count patches with [ not degraded ]
+  ;set habitat-patch-size int  sqrt ( nondegraded / numcluster ) - 1
 end
 
 ;
@@ -430,54 +436,6 @@ to-report moore-offsets [n include-center?]
     [ report remove [0 0] result ]
 end
 
-;;
-;; Detect "clusters" of non-degraded patches and put numbers on them
-;;
-
-to find-clusters
-  loop [
-    ;; pick a random patch that isn't in a cluster yet
-    let seed one-of patches with [cluster = nobody and ( not degraded )]
-    ;; if we can't find one, then we're done!
-    if seed = nobody
-    [
-      show-clusters
-      stop
-    ]
-    ;; otherwise, make the patch the "leader" of a new cluster
-    ;; by assigning itself to its own cluster, then call
-    ;; grow-cluster to find the rest of the cluster
-    ask seed
-    [ set cluster self
-      grow-cluster ]
-  ]
-  display
-end
-
-to grow-cluster  ;; patch procedure
-  ask neighbors with [(cluster = nobody) and
-    (pcolor = [pcolor] of myself)]
-  [ set cluster [cluster] of myself
-    grow-cluster ]
-end
-
-;; once all the clusters have been found, this is called
-;; to put numeric labels on them so the user can see
-;; that the clusters were identified correctly
-to show-clusters
-  let counter 0
-  loop
-  [ ;; pick a random patch we haven't labeled yet
-    let p one-of patches with [cluster_no = 0 and not degraded]
-    if p = nobody
-      [ stop ]
-    ;; give all patches in the chosen patch's cluster
-    ;; the same label
-    ask p
-    [ ask patches with [cluster = [cluster] of myself]
-      [ set cluster_no counter ] ]
-    set counter counter + 1 ]
-end
 
 ; Calculate the shortest distance from a random point to the border of the patch
 ; from non-degraded to degraded and from degraded to non-degraded patches
@@ -564,6 +522,80 @@ to-report rank-abundance
 
   report rank-abundance-list
 end
+
+;
+; Hoshen–Kopelman algorithm for non-degraded patches
+;
+to-report find-cluster-sizes
+
+  let cluster-sizes []
+  let non-degraded patches with [ degraded = false] ;
+  ;print (word " non-degraded: " non-degraded)
+  if any? non-degraded [
+    ask non-degraded [ set cluster-label 0 ]
+    set non-degraded sort non-degraded                       ; convert agentset to a list
+    let largest-label 0
+
+    ;
+    ; label clusters
+    ;
+    foreach non-degraded [
+      t -> ask t [
+
+        let pleft patch-at -1 0  ; same row to the left x-1
+        let pabove patch-at 0 1  ; same column abobew   y+1
+        ifelse  not member? pabove non-degraded and not member? pleft non-degraded [
+          ;show "NO neighbor!!!!"
+
+          set largest-label largest-label + 1
+          set cluster-label largest-label
+        ][
+          ifelse member? pleft non-degraded and not member? pabove non-degraded [
+            ;show "LEFT neighbor!!!!"
+            set cluster-label [cluster-label] of pleft
+          ][
+            ifelse member? pabove non-degraded and not member? pleft non-degraded [
+              ;show "ABOVE neighbor!!!!"
+              set cluster-label [cluster-label] of pabove
+            ][
+              ;show "BOTH neighbors!!!"
+              let lblabove [cluster-label] of pabove
+              let lblleft  [cluster-label] of pleft
+              ifelse lblleft = lblabove [
+                set cluster-label lblleft
+              ][
+                ifelse lblleft < lblabove [
+                  set cluster-label lblleft
+                  foreach non-degraded [r -> ask r [ if cluster-label = lblabove[ set cluster-label lblleft] ] ]
+                ][
+                  set cluster-label lblabove
+                  foreach non-degraded [r -> ask r [ if cluster-label = lblleft [ set cluster-label lblabove] ] ]
+                ]
+              ]
+
+
+            ]
+          ]
+        ]
+      ]
+    ]
+
+    ;
+    ;
+    ;
+    set non-degraded patches with [member? self non-degraded]
+    let label-list [cluster-label] of non-degraded
+    ;print word "label-list: " label-list
+    set label-list remove-duplicates label-list
+    ;print word "label-list: " label-list
+
+    foreach label-list [
+      t -> set cluster-sizes lput count non-degraded with [cluster-label = t] cluster-sizes
+    ]
+  ]
+  report cluster-sizes
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 230
@@ -579,8 +611,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 0
 199
@@ -683,7 +715,7 @@ initial-population
 initial-population
 0
 20000
-100.0
+0.0
 100
 1
 NIL
@@ -893,7 +925,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-62.0
+61.0
 1
 1
 NIL
@@ -964,7 +996,7 @@ SWITCH
 603
 Migration0-at-deforestation
 Migration0-at-deforestation
-0
+1
 1
 -1000
 
