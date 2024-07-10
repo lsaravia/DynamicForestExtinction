@@ -284,7 +284,7 @@ to-report calc-number-of-species
   ]
 
   report sum species-count
-  ;;count birds with [species = i]]
+  ;;count birds with [species = i]
 end
 
 to random-deforestation
@@ -312,13 +312,13 @@ to regular-deforestation
   let h 1 - prob-frag                                      ; Propotion of habitat
   let p habitat-patch-size + 1                         ; Side of the patch
 
-  let n world-width * world-height * h / (p * p )          ; Number of patches
-  let prow int sqrt n                                      ; Number of rows of patches
+  let n round ( world-width * world-height * h / (p * p ) )          ; Number of patches
+  let prow int round sqrt n                                      ; Number of rows of patches
   if prow = 0 [
     Print "error number of rows 0, make patch size smaller!"
     stop ]
   let pos ( world-width -  p * prow ) / prow               ; position of the edge of the patch and distance between patches
-  ;print (word "Number of patches: " n " Number per row: "  prow  " Position: " pos " Side of patch: " p)
+;  print (word "Number of patches: " n " Number per row: "  prow  " Position: " pos " Side of patch: " p)
 
   let pcenter  pos +  habitat-patch-size + 1
 
@@ -341,10 +341,9 @@ to regular-deforestation
 ;
     let coordx  ( x mod prow ) * pcenter ;- 1
     let coordy  ( int ( x / prow )  ) * pcenter ;- 1
-;    print (word "coord y: "  coordy  " coord x: " coordx)
 
     if coordx >= min-pxcor and coordy >= min-pycor and coordx <= max-pxcor and coordy <= max-pycor  [
-    print (word "coord y: "  coordy  " coord x: " coordx)
+    ;print (word "coord y: "  coordy  " coord x: " coordx)
 
       ask patch coordx coordy [
         ask patches at-points nearby [
@@ -839,7 +838,7 @@ prob-frag
 prob-frag
 0
 1
-0.6
+0.8
 .01
 1
 NIL
@@ -853,7 +852,7 @@ CHOOSER
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-2
+0
 
 SWITCH
 110
@@ -925,7 +924,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-61.0
+29.0
 1
 1
 NIL
@@ -1047,7 +1046,7 @@ The model contains the following entities:
 
 **Globals** - model parameters and global variables
 
-The spatial extent comprises the entire NetLogo world, which can be configured as desired (default is 51 x 51 patches). One time step represents one generation of the birds. Simulations are run for a max time configured by `end-time`
+The spatial extent comprises the entire NetLogo world, which can be configured as desired (default is 200 x 200 patches). One time step represents one generation of the birds. Simulations are run for a max time configured by `end-time`
 
 ## 3. Process overview and scheduling
 
@@ -1138,7 +1137,8 @@ The model does not use input data from external sources.
 2. Regular loss generating a fragmented landscape with regular pattern of degraded patches. 
 3. Block loss using randomized squares of degraded patches.
 
-The total amount of degradation is set by the *prob-frag* parameter.
+
+The total amount of degradation is set by the *prob-frag* parameter. To reach an exact amount of habitat loss random habitat sites around squares of habitat patches is added if needed. 
 
 **Dispersal** - Birds reproduce probabilistically based on fixed rates. Offspring disperse locally based on a power law distribution with an exponent chosen to match the mean dispersal distance set by the *birds-dispersal-distance* parameter. 
 
@@ -1155,13 +1155,9 @@ With neutral dynamics, they settle in any empty non-degraded patches within disp
 
 ## 8. References
 
-Key references that influenced the model design:
+The model was originally described in: 
 
-Hanski, I. (1998). Metapopulation dynamics. Nature, 396(6706), 41-49.
-
-Hubbell, S. P. (2001). The unified neutral theory of biodiversity and biogeography. Princeton University Press.
-
-Leibold, M. A., Holyoak, M., Mouquet, N., Amarasekare, P., Chase, J. M., Hoopes, M. F., ... & Gonzalez, A. (2004). The metacommunity concept: a framework for multi‐scale community ecology. Ecology letters, 7(7), 601-613.
+Saravia, L. A., & Momo, F. R. (2018). Biodiversity collapse and early warning indicators in a spatial phase transition between neutral and niche communities. Oikos, 127(1), 111–124. https://doi.org/10.1111/oik.04256
 @#$#@#$#@
 default
 true
@@ -1477,7 +1473,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.3.0
+NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

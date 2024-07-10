@@ -134,10 +134,7 @@ With neutral dynamics, they settle in any empty non-degraded patches within disp
 
 ## 8. References
 
-Key references that influenced the model design:
 
-Hanski, I. (1998). Metapopulation dynamics. Nature, 396(6706), 41-49.
+The model was described in: 
 
-Hubbell, S. P. (2001). The unified neutral theory of biodiversity and biogeography. Princeton University Press.
-
-Leibold, M. A., Holyoak, M., Mouquet, N., Amarasekare, P., Chase, J. M., Hoopes, M. F., ... & Gonzalez, A. (2004). The metacommunity concept: a framework for multi‐scale community ecology. Ecology letters, 7(7), 601-613.
+Saravia, L. A., & Momo, F. R. (2018). Biodiversity collapse and early warning indicators in a spatial phase transition between neutral and niche communities. Oikos, 127(1), 111–124. https://doi.org/10.1111/oik.04256
