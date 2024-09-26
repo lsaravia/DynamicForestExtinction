@@ -777,10 +777,10 @@ NIL
 HORIZONTAL
 
 PLOT
-760
-295
-1015
-505
+755
+275
+1035
+520
 Total number of individuals
 NIL
 NIL
@@ -795,10 +795,10 @@ PENS
 "default" 1.0 0 -13840069 true "" "plot count birds"
 
 PLOT
-1030
-295
-1285
-505
+1045
+275
+1325
+520
 Shannon Diversity
 NIL
 NIL
@@ -838,21 +838,21 @@ prob-frag
 prob-frag
 0
 1
-0.8
+0.6
 .01
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-1080
-45
-1227
-90
+720
+570
+867
+615
 birds-behavior
 birds-behavior
 "BirthSelection" "NoSelection" "Hierarchical"
-0
+1
 
 SWITCH
 110
@@ -866,10 +866,10 @@ Video
 -1000
 
 SLIDER
-1080
-125
-1262
-158
+720
+630
+902
+663
 replacement-rate
 replacement-rate
 0
@@ -881,10 +881,10 @@ NIL
 HORIZONTAL
 
 PLOT
-760
-520
-1020
-735
+1045
+10
+1325
+255
 Number of species
 NIL
 NIL
@@ -924,7 +924,7 @@ habitat-patch-size
 habitat-patch-size
 1
 200
-29.0
+3.0
 1
 1
 NIL
@@ -959,39 +959,39 @@ efective-degraded-proportion
 11
 
 SLIDER
-20
-670
-227
-703
+250
+625
+457
+658
 Deforestation-at-time
 Deforestation-at-time
 0
 600
-200.0
-100
-1
-NIL
-HORIZONTAL
-
-SLIDER
-20
-710
-192
-743
-end-time
-end-time
-0
-2000
 600.0
 100
 1
 NIL
 HORIZONTAL
 
+SLIDER
+250
+675
+422
+708
+end-time
+end-time
+0
+2000
+1500.0
+100
+1
+NIL
+HORIZONTAL
+
 SWITCH
-240
+250
 570
-492
+502
 603
 Migration0-at-deforestation
 Migration0-at-deforestation
@@ -1001,9 +1001,9 @@ Migration0-at-deforestation
 
 CHOOSER
 530
-575
+570
 687
-620
+615
 deforestation-type
 deforestation-type
 "random" "random block" "regular"
