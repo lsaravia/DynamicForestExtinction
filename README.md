@@ -1,6 +1,6 @@
 # Dynamic forest extinction and fragmentation models 
 
-[![DOI](https://zenodo.org/badge/364956671.svg)](https://zenodo.org/badge/latestdoi/364956671)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8157152.svg)](https://doi.org/10.5281/zenodo.8157152)
 
 
 * **ContactProcess2SpeciesCompetition.nlogo** A two-species contact model the species can have different birth death rates and dispersal distances. 
@@ -30,10 +30,15 @@
 
 	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/MultipleContactNeutralMigrat.nlogo>
 
+	> if you use this model please cite
+	> 
+	> Saravia, L. A., Balza, U., & Momo, F. (2024). Why there are more species in several small patches versus few large patches: A multispecies modelling approach. Functional Ecology, 39(1), 103–113. https://doi.org/10.1111/1365-2435.14695
+
 
 ## References
 
-[1] Saravia, L. A., and Momo, F. R. (2018). Biodiversity collapse and early warning indicators in a spatial phase transition between neutral and niche communities. Oikos 127, 111–124. doi:10.1111/oik.04256. <https://onlinelibrary.wiley.com/doi/abs/10.1111/oik.04256>
+[1] Saravia, L. A., Balza, U., & Momo, F. (2024). Why there are more species in several small patches versus few large patches: A multispecies modelling approach. Functional Ecology, 39(1), 103–113. https://doi.org/10.1111/1365-2435.14695
 
 
-[2] Crowley, P. H., Davis, H. M., Ensminger, A. L., Fuselier, L. C., Jackson, J. K., and McLetchie, D. N. (2005). A general model of local competition for space. Ecology Letters 8, 176–188. doi:https://doi.org/10.1111/j.1461-0248.2004.00709.x.
+[2] Saravia, L. A., and Momo, F. R. (2018). Biodiversity collapse and early warning indicators in a spatial phase transition between neutral and niche communities. Oikos 127, 111–124. doi:10.1111/oik.04256. <https://onlinelibrary.wiley.com/doi/abs/10.1111/oik.04256>
+
