@@ -19,7 +19,7 @@
 	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/ContactProcessBirdsInsideForest.nlogo>
 
 
-* **MultipleContactNeutralMigrat.nlogo** A multiple species neutral/hierarchical model described in [1]. The model has three behaviours
+* **MultipleContactNeutralMigrat.nlogox** A multiple species neutral/hierarchical model described in [1]. The model has three behaviours
 
 	1. A completely neutral model, where species disperse and if the site is occupied the individual dies
 	2. A completely neutral model, where species disperse to empty sites if they are available 
@@ -28,7 +28,7 @@
 	Another feature are deforestation buttons that adds degraded sites that cannot be colonized.  
 
 
-	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/MultipleContactNeutralMigrat.nlogo>
+	<http://netlogoweb.org/web?https://raw.githubusercontent.com/lsaravia/DynamicForestExtinction/main/MultipleContactNeutralMigrat.nlogox>
 
 	> if you use this model please cite
 	> 
